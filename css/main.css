@@ -1,0 +1,27 @@
+html {
+  font-size: 62.5%;
+}
+
+#spreadsheetContainer table {
+  border-collapse: collapse;
+}
+
+#spreadsheetContainer td,
+#spreadsheetContainer th {
+  border: 1px solid #ccc;
+}
+
+#spreadsheetContainer th {
+  min-width: 5rem;
+  background-color: #eee;
+}
+
+#spreadsheetContainer td input {
+  width: 7rem;
+  height: 1.5rem;
+  border: none;
+}
+
+#spreadsheetContainer td input:focus {
+  outline: none;
+}
