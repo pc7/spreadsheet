@@ -19,10 +19,26 @@ var menu = (function() {
     var newActiveCell = function(cellObject) {
 
         // Remove active cell status from the previous active cell, and store a reference to the new active cell.
-        if (activeCell) { activeCell.removeActiveCellStatus(); }
+        if (activeCell && activeCell !== cellObject) { activeCell.removeActiveCellStatus(); }
         activeCell = cellObject;
 
+        // Clear previous error message and display the cell's error message if available.
+        var errorMessage = cellObject.getErrorMessage();
+        messageBar.textContent = errorMessage ? errorMessage : '';
+
     };
+
+    // If a valid cell reference is entered, makeActiveCell() is invoked for that cell when the 'Enter' key is pressed.
+    // If the submitted content isn't a valid cell reference, an error message is displayed in the messageBar.
+    nameBox.addEventListener('keypress', function(eventObject) {
+        if (eventObject.keyCode !== 13) { return; }
+        var result = grid.findCellObject(nameBox.value);
+        if (typeof result === "object") {
+            result.makeActiveCell();
+        } else {
+            messageBar.textContent = result;
+        }
+    }, false)
 
     return {
         newActiveCell: newActiveCell, 

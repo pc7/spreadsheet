@@ -7,6 +7,9 @@ var grid = (function() {
 
     "use strict";
 
+
+    // >> Grid generation, and finding column references from the column index.
+
     // Starting dimensions of the spreadsheet grid, x number of columns and y number of rows.
     var initialDimensions = {x: 58, y: 55};
 
@@ -122,9 +125,62 @@ var grid = (function() {
     writeRowHeadings();
     writeColHeadings();
 
+    // >> End grid generation, and finding column references from the column index.
+
+
+
+    // >> Methods to find a cell from its string reference.
+
+    // Takes a full valid cell reference string as an argument, eg "A5", and returns the row reference, eg "5".
+    var extractRowReference = function(referenceString) {
+        return referenceString.replace( /[A-Z]+/, '' ).match( /[0-9]+/ ).join('');
+    };
+
+    // Takes a full valid cell reference string as an argument, eg "A5", and returns the column reference, eg "A".
+    var extractColReference = function(referenceString) {
+        return referenceString.match( /[A-Z]+/ ).join('');
+    };
+
+    // Takes a column reference string as an argument, eg "A", and returns the index of the corresponding column in the
+    // gridArray object, eg 1. This is basically the reverse of computeColReference().
+    // Each letter is a power of 26, so "AAA" is 1x26^3 + 1x26^2 + 1x26^1. colReference letters must be uppercase.
+    var computeColIndex = function(colReference) {
+        var index = 0;
+        for (var i = 0, length = colReference.length; i < length; i++) {
+            // Note that subtracting 64 turns the unicode character code into the letter's position, eg "C" is 3.
+            index += (colReference.charCodeAt(i)-64) * Math.pow(26, length-i-1);
+        }
+        return index;
+    };
+
+    // Takes an attempted reference string as an argument, eg "A5", and returns the associated cell object.
+    // If a corresponding cell object doesn't exist, an error message string is returned.
+    var findCellObject = function(referenceString) {
+
+        var uReferenceString = referenceString.toUpperCase();
+
+        // referenceString must be [zero or more whitespace][one or more A-Z][one or more 0-9][zero or more whitespace].
+        if ( !/^\s*[A-Z]+\d+\s*$/.test(uReferenceString) ) {
+            return "The characters " + referenceString + " are not valid a cell reference.";
+        }
+
+        var row = extractRowReference(uReferenceString),
+            col = computeColIndex( extractColReference(uReferenceString) );
+
+        // Return the cell object if the grid co-ordinates exist, otherwise return the error string.
+        if (gridArray[row] && gridArray[0][col]) {
+            return gridArray[row][col];
+        } else {
+            return "The cell reference " + referenceString + " isn't on the grid.";
+        }
+
+    };
+
+    // >> End methods to find a cell from its string reference.
+
 
     return {
- 
+        findCellObject: findCellObject, 
     };
 
 }());
