@@ -44,7 +44,7 @@ var createCell = function(trObject, index) {
     };
 
     // Make the cell the active cell if it is clicked on.
-    tdObject.addEventListener('click', function() {
+    tdObject.addEventListener('mousedown', function() {
         // Make the cell the active cell, if it isn't already.
         if (!tdObject.getAttribute('id', 'activeCell')) {
             // This is the method invokation which requires the cellObject to have an identifier.

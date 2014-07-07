@@ -11,7 +11,7 @@ var grid = (function() {
     // >> Grid generation, and finding column references from the column index.
 
     // Starting dimensions of the spreadsheet grid, x number of columns and y number of rows.
-    var initialDimensions = {x: 58, y: 55};
+    var initialDimensions = {x: 58, y: 45};
 
     var gridArray = [],
         tableEl = document.querySelector('#spreadsheetContainer table');
@@ -179,8 +179,25 @@ var grid = (function() {
     // >> End methods to find a cell from its string reference.
 
 
+    // Returns the index of a cell object within the grid, in the format {row: 5, col: 7}.
+    var findCellIndex = function(cellObject) {
+        for (var rowIndex = 1, rows = gridArray.length-1; rowIndex < rows; rowIndex++) {
+            var cellIndex = gridArray[rowIndex].indexOf(cellObject);
+            if (cellIndex !== -1) {
+                return {row: rowIndex, col: cellIndex};
+            }
+        }
+    };
+
+    // Takes a cell object as an argument, and returns its reference string, eg "A5".
+    var computeCellReference = function(cellObject) {
+        var index = findCellIndex(cellObject);
+        return computeColReference(index.col) + index.row;
+    };
+
     return {
-        findCellObject: findCellObject, 
+        findCellObject: findCellObject,
+        computeCellReference: computeCellReference, 
     };
 
 }());

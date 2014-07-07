@@ -22,6 +22,9 @@ var menu = (function() {
         if (activeCell && activeCell !== cellObject) { activeCell.removeActiveCellStatus(); }
         activeCell = cellObject;
 
+        // Put the cell's string reference as the value of the nameBox.
+        nameBox.value = grid.computeCellReference(cellObject);
+
         // Clear previous error message and display the cell's error message if available.
         var errorMessage = cellObject.getErrorMessage();
         messageBar.textContent = errorMessage ? errorMessage : '';
