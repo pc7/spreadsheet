@@ -129,7 +129,7 @@ var grid = (function() {
 
 
 
-    // >> Methods to find a cell from its string reference.
+    // >> Functions to find a cell from its string reference.
 
     // Takes a full valid cell reference string as an argument, eg "A5", and returns the row reference, eg "5".
     var extractRowReference = function(referenceString) {
@@ -176,23 +176,26 @@ var grid = (function() {
 
     };
 
-    // >> End methods to find a cell from its string reference.
+    // >> End functions to find a cell from its string reference.
 
 
-    // Returns the index of a cell object within the grid, in the format {row: 5, col: 7}.
-    var findCellIndex = function(cellObject) {
-        for (var rowIndex = 1, rows = gridArray.length-1; rowIndex < rows; rowIndex++) {
-            var cellIndex = gridArray[rowIndex].indexOf(cellObject);
+    // Returns the index of the argument within the gridArray, in the format {row: 5, col: 7}.
+    // Returns -1 if the argument is not an element in the gridArray.
+    var findCellIndex = function(el) {
+        for (var rowIndex = 1, rows = gridArray.length; rowIndex < rows; rowIndex++) {
+            var cellIndex = gridArray[rowIndex].indexOf(el);
             if (cellIndex !== -1) {
                 return {row: rowIndex, col: cellIndex};
             }
         }
+        return -1;
     };
 
-    // Takes a cell object as an argument, and returns its reference string, eg "A5".
-    var computeCellReference = function(cellObject) {
-        var index = findCellIndex(cellObject);
-        return computeColReference(index.col) + index.row;
+    // Returns the reference string of the argument if it is an element in the gridArray, eg "A5".
+    // If the argument is not an element in the gridArray, returns -1.
+    var computeCellReference = function(el) {
+        var index = findCellIndex(el);
+        return (index !== -1) ? (computeColReference(index.col) + index.row) : index;
     };
 
     return {

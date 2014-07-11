@@ -29,3 +29,7 @@ html {
 #spreadsheetContainer #activeCell {
   outline: 2px solid #000;
 }
+
+.hasMessage {
+  background-color: #fdfd99;
+}

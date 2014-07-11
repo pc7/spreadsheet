@@ -15,20 +15,26 @@ var menu = (function() {
     var messageBar = document.getElementById('messageBar'),
         nameBox = document.getElementById('nameBox');
 
+    // Set a new message in the messageBar. If no message is passed (eg empty string), messageBar is reset.
+    var setMessage = function(message) {
+        if (message) {
+            messageBar.classList.add('hasMessage');
+            messageBar.textContent = message;
+        } else {
+            messageBar.classList.remove('hasMessage');
+            messageBar.textContent = '';
+        }
+    };
+
     // Invoked by a cell object when it becomes the active cell.
     var newActiveCell = function(cellObject) {
-
         // Remove active cell status from the previous active cell, and store a reference to the new active cell.
-        if (activeCell && activeCell !== cellObject) { activeCell.removeActiveCellStatus(); }
+        if (activeCell && (activeCell !== cellObject)) { activeCell.removeActiveCellStatus(); }
         activeCell = cellObject;
-
         // Put the cell's string reference as the value of the nameBox.
         nameBox.value = grid.computeCellReference(cellObject);
-
-        // Clear previous error message and display the cell's error message if available.
-        var errorMessage = cellObject.getErrorMessage();
-        messageBar.textContent = errorMessage ? errorMessage : '';
-
+        // Clear previous message and display the cell's error message if available.
+        setMessage(cellObject.getErrorMessage());
     };
 
     // If a valid cell reference is entered, makeActiveCell() is invoked for that cell when the 'Enter' key is pressed.
@@ -39,12 +45,13 @@ var menu = (function() {
         if (typeof result === "object") {
             result.makeActiveCell();
         } else {
-            messageBar.textContent = result;
+            setMessage(result);
         }
     }, false)
 
     return {
-        newActiveCell: newActiveCell, 
+        newActiveCell: newActiveCell,
+        setMessage: setMessage, 
     };
 
 }());
