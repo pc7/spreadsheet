@@ -92,9 +92,17 @@ var createCell = function(trObject, index) {
             // Set the computedValue to an arbitrary value.
             set: function(newValue) {
                 String(newValue);
+                // If the newValue is an empty string or nothing but whitespace, reset this as null.
+                if  (newValue === '' || /^\s+$/.test(newValue) ) {
+                    newValue = null;
+                }
                 if (computedValue !== newValue) {
                     computedValue = newValue;
-                    inputEl.textContent = computedValue;
+                    if (computedValue !== null) {
+                        // inputEl.value = computedValue;
+                    } else {
+                        // inputEl.value = '';
+                    }
                     // If the computedValue is changed, tell the cells whose values are dependent on the value of this cell.
                     cellsDependentOnThisCell.forEach( function(el) { el.generateComputedValue(); } );
                     console.log( grid.computeCellReference(cellObject) + ' computedValue set to: ' + computedValue );
@@ -234,7 +242,7 @@ var createCell = function(trObject, index) {
         // If formula is not valid, stop processing.
         if (valid !== '') {
             console.log('invalid formula syntax.');
-            invalidFormula(rawInput, "Formula contains incorrect syntax.");
+            invalidFormula(rawInput, "Formula contains incorrect syntax. See the 'instructions' tab for limitations.");
             return;
         }
 
@@ -330,6 +338,8 @@ var createCell = function(trObject, index) {
         // end test
         */
 
+        // Bug: /^\d+([\+\-\*\/]\d+)+$/
+
         formulaString = "";
 
         // This will eventually be passed to eval() if the formula is valid.
@@ -373,7 +383,13 @@ var createCell = function(trObject, index) {
                     // If cells are not part of a range (these will be dealt with later)...
                     if ((formulaStringTemplate[i-1] !== ":") && (formulaStringTemplate[i+1] !== ":")) {
                         tempCellsReferencedInFormula.push(formulaStringTemplate[i]);
-                        evalString += formulaStringTemplate[i].getComputedValue();
+                        // Replace 'null' cell values with zero in the evalString.
+                        var value = formulaStringTemplate[i].getComputedValue();
+                        if (value !== null) {
+                            evalString += value;
+                        } else {
+                            evalString += 0;
+                        }
                     }
                 }
             } else {
@@ -402,6 +418,7 @@ var createCell = function(trObject, index) {
 
         // Formulas that reach this point have valid syntax and valid cell references.
         console.log('formula has valid syntax and valid references.');
+        console.log('evalString is now: ' + evalString);
 
         // Remove values from previous formula value.
         removeFormulaValues();
@@ -412,23 +429,29 @@ var createCell = function(trObject, index) {
 
         // If the formula consists of only one cell reference, eg "=A5", then that cell can have a string value.
         if ((typeof formulaStringTemplate[0] === "object") && (formulaStringTemplate.length === 1)) {
-            console.log( 'formulaStringTemplate contains only one value. Return the value: ' + formulaStringTemplate[0].getComputedValue() );
-            computedValue.set( formulaStringTemplate[0].getComputedValue() );
+            console.log( 'formulaStringTemplate contains only one value. Return the value: ' + evalString ) 
+            computedValue.set( evalString );
             return;
         }
-        
-        var finalValue = eval(evalString);
+ 
 
-        // If the evalString doesn't evaluate to a number, we're trying to perform maths operations on strings.
+
+
+        console.log( 'evalString matched: ' + !!evalString.match(/^\d+([\+\-\\\*]\d+)*$/) )
+
+        // Check if the evalString is in the format [one or more digits] with zero or more ([digits][operator]).
+        // If so, then the evalString is correct, ie in the format "5+5", "8*9*10", "3", "20*250" etc.
+        // If not, then we're trying to perform maths operations on strings.
         // The formula's syntax and references are still valid, and will evaluate to a number if the referenced cells
         // are given number values in future.
-        if (isNaN(finalValue)) {
-            errorMessage.set("Formula contains maths operations on string values.");
+        // If the formulaStringTemplate contains only one reference, then this is also acceptable.
+        // eg if cell A5 is the string "apples", another call can contain the formula "=A5" but not "=A5+1".
+        if ( !evalString.match(/^\d+([\+\-\/\*]\d+)*$/) && formulaStringTemplate.length !== 1 ) {
+            errorMessage.set("Formula contains maths operations on string values. See the 'instructions' tab for limitations.");
             computedValue.set(formulaString);
             return;
         }
-
-        computedValue.set(finalValue);
+        computedValue.set( eval(evalString) );
 
     };
 
