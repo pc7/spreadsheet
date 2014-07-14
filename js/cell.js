@@ -237,7 +237,7 @@ var createCell = function(trObject, index) {
         //   Repeat the above line one or more times.
         //   Ending with one cell reference, or one or more digits, or one function.
         //   OR the whole thing consists only of one cell reference, or one or more digits, or one function.
-        var valid = tempFormulaString.replace( /((([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))[\+\-\*\/])+(([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))|([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\))/, '' );
+        var valid = tempFormulaString.replace( /((([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))[\+\-\*\/])+(([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))|([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\))/, '' );
 
         // If formula is not valid, stop processing.
         if (valid !== '') {
@@ -349,6 +349,7 @@ var createCell = function(trObject, index) {
         // Will replace the cellsReferencedInFormula array if the formula is valid.
         // Needs to be re-generated every time the formulaStringTemplate is evaluated, as cells within a range may
         // have been destroyed, but the formula would still be valid.
+        // The old cellsReferencedInFormula array must be kept for now, to enable prevention of circular references etc.
         var tempCellsReferencedInFormula = [];
 
         // Will contain a truthy error message string if the formula contains a cell reference that it shouldn't.
@@ -382,14 +383,15 @@ var createCell = function(trObject, index) {
                     console.log( '... ... formulaString is now: ' + formulaString );
                     // If cells are not part of a range (these will be dealt with later)...
                     if ((formulaStringTemplate[i-1] !== ":") && (formulaStringTemplate[i+1] !== ":")) {
+                        console.log('... ... cell is not part of a range.');
                         tempCellsReferencedInFormula.push(formulaStringTemplate[i]);
                         // Replace 'null' cell values with zero in the evalString.
                         var value = formulaStringTemplate[i].getComputedValue();
-                        if (value !== null) {
-                            evalString += value;
-                        } else {
-                            evalString += 0;
-                        }
+                        evalString += (value === null) ? 0 : value;
+                    } else {
+                        // Cell is part of a range.
+                        console.log('... ... cell is part of a range.');
+                        evalString += grid.computeCellReference(formulaStringTemplate[i]);
                     }
                 }
             } else {
@@ -414,7 +416,28 @@ var createCell = function(trObject, index) {
             return;
         }
 
-        // Replace function with value in formulaString here.
+        // Replace all functions with their evaluated value, eg "SUM(A1:B1)+1" becomes "5+1".
+        var functionRegex = /(SUM|MEAN|MAX|MIN)\([A-Z]+\d+\:[A-Z]+\d+\)/;
+        console.log( 'evalString is now: ' + evalString ) 
+        console.log( 'function regex matched: ' + functionRegex.test(evalString) ) 
+        // While the evalString contains functions...
+        while ( functionRegex.test(evalString) ) {
+            var computedFunctionResult = grid.computeFormulaFunction( cellObject, evalString.match(functionRegex)[0] );
+            console.log('computedFunctionResult: ' + computedFunctionResult);
+            // If the function was valid, computedFunctionResult will be {value: x, rangeCells: []}.
+            // If not, computedFunctionResult will be {message: "error message"}.
+            if ( "value" in computedFunctionResult ) {
+                // If the grid method returns a number result, replace the function in the evalString with that number.
+                evalString = evalString.replace(functionRegex, computedFunctionResult.value);
+                console.log('evalString function replaced, evalString is now: ' + evalString);
+                // Add all the cells in the range to the temp referenced cells array.
+                tempCellsReferencedInFormula = tempCellsReferencedInFormula.concat(computedFunctionResult.rangeCells);
+                console.log('tempCellsReferencedInFormula is now: ' + tempCellsReferencedInFormula);
+            } else {
+                // If error message returned, then function (and therefore whole formula) is not valid.
+                return invalidFormula(formulaString, computedFunctionResult.message);
+            }
+        }
 
         // Formulas that reach this point have valid syntax and valid cell references.
         console.log('formula has valid syntax and valid references.');

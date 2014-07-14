@@ -198,9 +198,107 @@ var grid = (function() {
         return (index !== -1) ? (computeColReference(index.col) + index.row) : index;
     };
 
+    // Takes a formula function string as an argument, eg "SUM(B15, A1)", and returns an object.
+    // The other argument is the cellObject that invoked the method, so it can be checked as not present in the range.
+    // If function valid, returns the result and an array of the range cells, {value: 5, rangeCells: [{A1}, {A2}, etc]}.
+    // If function is not valid, returns an error message string, {message: ""}.
+    // The function string should already have been vetted as having valid syntax, and the delimiter cells as existing.
+    var computeFormulaFunction = function(cellObject, funcString) {
+        console.log('grid.computeFormulaFunction invoked, arg: ' + funcString);
+
+        // Get the function type, and remove it from the argument string, leaving "(B15:A1)".
+        var funcNames = /(SUM|MEAN|MAX|MIN)/,
+            funcName = funcString.match(funcNames)[0],
+            funcString = funcString.replace(funcNames, '');
+
+        console.log('... funcName is: ' + funcName + ', funcString is now: ' + funcString);
+
+        // Find the top left and bottom right coordinates in the range (the given cells could be the opposites).
+        // This creates two arrays giving the index coordinates, eg rows [15, 1] and cols [2, 1].
+        var rows = funcString.match(/\d+/g),
+            cols = funcString.match(/[A-Z]+/g).map( function(el) { return computeColIndex(el) } );
+
+        console.log('... range index rows: ' + rows + ' cols: ' + cols );
+
+        // Order the rows and cols, leaving rows [1, 15] and cols [1, 2].
+        var sortInOrder = function(firstEl, secondEl) { return firstEl - secondEl };
+        rows.sort(sortInOrder);
+        cols.sort(sortInOrder);
+
+        console.log('... range index rows: ' + rows + ' cols: ' + cols);
+
+        // Add all the cell objects in the range to the cellsInRange array, creating [{A1}, {A2}, {A3} ...etc].
+        var cellsInRange = [];
+        for (var i = rows[0], len = rows[1]; i <= len; i++) {
+            for (var j = cols[0], l = cols[1]; j <= l; j++) {
+                //console.log('... i: ' + i + ' j: ' + j + ' cell: ' + gridArray[i][j]);
+                cellsInRange.push(gridArray[i][j]);
+                console.log('... cell ' + grid.computeCellReference(cellsInRange[cellsInRange.length-1]) + ' added to cellsInRange array.');
+            }
+        }
+
+        // Return an error message if the cell itself is contained within the range, to avoid a recursive function.
+        if ( cellsInRange.indexOf(cellObject) !== -1 ) {
+            return { message: "Self-reference within the function range." };
+        }
+
+        // Number values in the range, eg [5, 2, 77].
+        // Values from empty cells, and those with string values, are not included.
+        var valuesInRange = [];
+        for (var i = 0, len = cellsInRange.length; i < len; i++) {
+            var value = cellsInRange[i].getComputedValue();
+            if ( (value !== null) && ( !isNaN( Number(value) ) ) ) {
+                valuesInRange.push( Number(value) );
+            }
+        }
+
+        // If there are no number values in the range, return zero as the value of the function.
+        if (valuesInRange.length === 0) {
+            return {
+                value: 0,
+                rangeCells: cellsInRange,
+            };
+        }
+
+        console.log('valuesInRange: ' + valuesInRange);
+
+        // Return the value of the function, and the cells within the range (that the calling cell is now dependent on).
+        switch (funcName) {
+
+            case "SUM":
+                console.log('SUM matched in switch statement');
+                return {
+                    value: valuesInRange.reduce( function(total, el) { return total + el } ),
+                    rangeCells: cellsInRange,
+                };
+
+            case "MEAN":
+                return {
+                    value: valuesInRange.reduce( function(total, el) { return total + el } ) / valuesInRange.length,
+                    rangeCells: cellsInRange,
+                };
+
+            case "MAX":
+                return {
+                    value: valuesInRange.sort( function(firstEl, secondEl) { return secondEl - firstEl } )[0],
+                    rangeCells: cellsInRange,
+                };
+
+            case "MIN":
+                return {
+                    value: valuesInRange.sort( function(firstEl, secondEl) { return firstEl - secondEl } )[0],
+                    rangeCells: cellsInRange,
+                };
+
+        }
+
+        return 1;
+    };
+
     return {
         findCellObject: findCellObject,
         computeCellReference: computeCellReference, 
+        computeFormulaFunction: computeFormulaFunction,
     };
 
 }());
