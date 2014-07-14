@@ -237,7 +237,7 @@ var createCell = function(trObject, index) {
         //   Repeat the above line one or more times.
         //   Ending with one cell reference, or one or more digits, or one function.
         //   OR the whole thing consists only of one cell reference, or one or more digits, or one function.
-        var valid = tempFormulaString.replace( /((([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))[\+\-\*\/])+(([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))|([A-Z]+[0-9]+)|[0-9]+|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\))/, '' );
+        var valid = tempFormulaString.replace( /((([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))[\+\-\*\/])+(([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))|([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\))/, '' );
 
         // If formula is not valid, stop processing.
         if (valid !== '') {
@@ -460,7 +460,7 @@ var createCell = function(trObject, index) {
 
 
 
-        console.log( 'evalString matched: ' + !!evalString.match(/^\d+([\+\-\\\*]\d+)*$/) )
+        console.log( 'evalString matched: ' + !!evalString.match(/^\-?\d+(\.\d+)?([\+\-\*\/](\-?\d+(\.\d+)?))*$/) )
 
         // Check if the evalString is in the format [one or more digits] with zero or more ([digits][operator]).
         // If so, then the evalString is correct, ie in the format "5+5", "8*9*10", "3", "20*250" etc.
@@ -469,7 +469,7 @@ var createCell = function(trObject, index) {
         // are given number values in future.
         // If the formulaStringTemplate contains only one reference, then this is also acceptable.
         // eg if cell A5 is the string "apples", another call can contain the formula "=A5" but not "=A5+1".
-        if ( !evalString.match(/^\d+([\+\-\/\*]\d+)*$/) && formulaStringTemplate.length !== 1 ) {
+        if ( !evalString.match(/^\-?\d+(\.\d+)?([\+\-\*\/](\-?\d+(\.\d+)?))*$/) && formulaStringTemplate.length !== 1 ) {
             errorMessage.set("Formula contains maths operations on string values. See the 'instructions' tab for limitations.");
             computedValue.set(formulaString);
             return;
