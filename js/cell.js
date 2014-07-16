@@ -175,8 +175,8 @@ var createCell = function(trObject, index) {
 
     // Tell the dependent cells to regenerate their computed value, without changing the value of 'this' cell.
     // This is needed when a new row or column is added in the middle of a range.
-    // eg 'this' cell is A3, and a dependent cell contains the range A2:A4. If a new row is added below A3, then
-    // the dependent cell needs to be told to include the new cell in its range, even though none of the cells has
+    // eg 'this' cell is A3, and a dependent cell contains the formula range A2:A4. If a new row is added below A3, then
+    // the dependent cell needs to be told to include the new cell in its range, even though none of the cells have
     // changed in value.
     var nudgeDependentCells = function() {
         cellsDependentOnThisCell.forEach( function(el) { el.generateComputedValue(); } );

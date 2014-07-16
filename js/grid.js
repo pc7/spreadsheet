@@ -131,17 +131,43 @@ var grid = (function() {
 
     // >> Functions to deal with cell creation and deletion, and row sorting.
 
+    // Create a new grid and DOM row, appended after the argument cellObject's row.
     var createNewRow = function(cellObject) {
+        // The index that the new row will have.
         var rowIndex = findCellIndex(cellObject).row + 1;
         createRow(rowIndex);
+        // Loop through all cells in the new row...
         for (var i = 1, len = gridArray[0].length; i < len; i++) {
             // All non-heading cells tell their dependent cells to regenerate their computed values.
-            // This will include the newly created cells in any ranges that span the newly created row.
+            // This will cause them to include the newly created cells in any ranges that span the newly created row.
             // If the new cell belongs in a range, the cell above it will also belong in that range.
-            // So, invoke nudgeDependentCells() on the cell above the new cell.
+            // So, invoke nudgeDependentCells() on the cell above the new cell. See nudgeDependentCells() for an example.
             gridArray[rowIndex-1][i].nudgeDependentCells();
         }
         writeRowHeadings(rowIndex);        
+    };
+
+    // Create a new grid and DOM column, appended after the argument cellObject's column.
+    var createNewColumn = function(cellObject) {
+        // The index that the new column will have.
+        var colIndex = findCellIndex(cellObject).col + 1;
+
+        // Loop through all grid and DOM rows, and add a newly created cell at the given column index.
+        for (var rowIndex = 0, len = gridArray.length; rowIndex < len; rowIndex++) {
+            var currentTrElement = tableEl.querySelector( 'tr:nth-of-type(' + (rowIndex+1) + ')' );
+            if (rowIndex !== 0) {
+                var newCell = createCell( currentTrElement, colIndex );
+            } else {
+                var newCell = createHeadingCell( currentTrElement, colIndex );
+            }
+            gridArray[rowIndex].splice( colIndex, 0, newCell );
+            // Regenerate ranges in dependent cell formulas, avoiding the heading cells. See createNewRow() for details.
+            if ((rowIndex > 0) && (colIndex > 1)) {
+                gridArray[rowIndex][colIndex-1].nudgeDependentCells();
+            }
+        }
+
+        writeColHeadings(colIndex);
     };
 
     // Removes and destroys the row of cells containing the argument cell object from the grid and the DOM.
@@ -365,6 +391,7 @@ var grid = (function() {
         destroyRow: destroyRow,
         destroyColumn: destroyColumn,
         createNewRow: createNewRow,
+        createNewColumn: createNewColumn,
     };
 
 }());

@@ -16,7 +16,8 @@ var menu = (function() {
         nameBox = document.getElementById('nameBox'),
         destroyRowButton = document.getElementById('destroyRow'),
         destroyColButton = document.getElementById('destroyColumn'),
-        createRowButton = document.getElementById('createRow');
+        createRowButton = document.getElementById('createRow'),
+        createColButton = document.getElementById('createColumn');
 
     // Set a new message in the messageBar. If no message is passed (eg empty string), messageBar is reset.
     var setMessage = function(message) {
@@ -55,6 +56,7 @@ var menu = (function() {
     destroyRowButton.addEventListener('click', function() { grid.destroyRow(activeCell); }, false);
     destroyColButton.addEventListener('click', function() { grid.destroyColumn(activeCell); }, false);
     createRowButton.addEventListener('click', function() { grid.createNewRow(activeCell); }, false);
+    createColButton.addEventListener('click', function() { grid.createNewColumn(activeCell); }, false);
 
     return {
         newActiveCell: newActiveCell,
