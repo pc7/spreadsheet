@@ -129,6 +129,36 @@ var grid = (function() {
 
 
 
+    // >> Functions to deal with cell creation and deletion, and row sorting.
+
+    // Removes and destroys the row of cells containing the argument cell object from the grid and the DOM.
+    var destroyRow = function(cellObj) {
+
+        // The grid must have at least one row.
+        if (gridArray.length <= 2) { return; }
+
+        var rowIndex = findCellIndex(cellObj).row,
+            rowArray = gridArray[rowIndex];
+
+        // Remove the row from the gridArray. This must be done before invoking destroy() on the cells.
+        gridArray.splice(rowIndex, 1);
+
+        // Destroy the non-heading cell objects within the row.
+        // This is needed to tell dependent and referenced cells objects.
+        rowArray.shift();
+        rowArray.forEach( function(el) { el.destroy(); } );
+
+        var trObject = tableEl.querySelector( 'tr:nth-of-type(' + (rowIndex+1) + ')' );
+        tableEl.removeChild(trObject);
+
+        writeRowHeadings(rowIndex);
+
+    };
+
+    // >> End cell creation, deletion and sorting functions.
+
+
+
     // >> Functions to find a cell from its string reference.
 
     // Takes a full valid cell reference string as an argument, eg "A5", and returns the row reference, eg "5".
@@ -299,6 +329,7 @@ var grid = (function() {
         findCellObject: findCellObject,
         computeCellReference: computeCellReference, 
         computeFormulaFunction: computeFormulaFunction,
+        destroyRow: destroyRow,
     };
 
 }());
