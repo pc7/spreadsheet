@@ -173,6 +173,15 @@ var createCell = function(trObject, index) {
         cellsDependentOnThisCell.splice( cellsDependentOnThisCell.indexOf(cellObj), 1 );
     };
 
+    // Tell the dependent cells to regenerate their computed value, without changing the value of 'this' cell.
+    // This is needed when a new row or column is added in the middle of a range.
+    // eg 'this' cell is A3, and a dependent cell contains the range A2:A4. If a new row is added below A3, then
+    // the dependent cell needs to be told to include the new cell in its range, even though none of the cells has
+    // changed in value.
+    var nudgeDependentCells = function() {
+        cellsDependentOnThisCell.forEach( function(el) { el.generateComputedValue(); } );
+    };
+
     // Returns true if cellObject is dependent on argument argCell, and false otherwise.
     // All the cell objects that cellObject is dependent on are checked for their own dependencies.
     // eg if cell A5 had the content "=B5" and cell B5 had the content "=C5", {A5}.isDependentOn({C5}) returns true.
@@ -547,6 +556,7 @@ var createCell = function(trObject, index) {
     cellObject.generateComputedValue = computedValue.generate;
     cellObject.isReferenceNotValid = isReferenceNotValid;
     cellObject.destroy = destroy;
+    cellObject.nudgeDependentCells = nudgeDependentCells;
 
     return cellObject;
 

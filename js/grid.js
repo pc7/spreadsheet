@@ -131,6 +131,19 @@ var grid = (function() {
 
     // >> Functions to deal with cell creation and deletion, and row sorting.
 
+    var createNewRow = function(cellObject) {
+        var rowIndex = findCellIndex(cellObject).row + 1;
+        createRow(rowIndex);
+        for (var i = 1, len = gridArray[0].length; i < len; i++) {
+            // All non-heading cells tell their dependent cells to regenerate their computed values.
+            // This will include the newly created cells in any ranges that span the newly created row.
+            // If the new cell belongs in a range, the cell above it will also belong in that range.
+            // So, invoke nudgeDependentCells() on the cell above the new cell.
+            gridArray[rowIndex-1][i].nudgeDependentCells();
+        }
+        writeRowHeadings(rowIndex);        
+    };
+
     // Removes and destroys the row of cells containing the argument cell object from the grid and the DOM.
     var destroyRow = function(cellObject) {
 
@@ -351,6 +364,7 @@ var grid = (function() {
         computeFormulaFunction: computeFormulaFunction,
         destroyRow: destroyRow,
         destroyColumn: destroyColumn,
+        createNewRow: createNewRow,
     };
 
 }());
