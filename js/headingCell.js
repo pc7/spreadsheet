@@ -18,11 +18,16 @@ var createHeadingCell = function(trObject, index) {
 
     // >> End generating the cell.
 
+    var destroy = function() {
+        trObject.removeChild(thObject);
+    };
+
     // Heading values are generated externally by the grid object.
     // They are generated whenever rows or columns are added to or removed from the grid.
 
     return {
         setHeadingValue: function(value) {spanObject.textContent = value;},
+        destroy: destroy,
     };
 
 };

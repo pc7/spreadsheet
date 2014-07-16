@@ -116,10 +116,9 @@ var createCell = function(trObject, index) {
                         // inputEl.value = '';
                     }
                     // If the computedValue is changed, tell the cells whose values are dependent on the value of this cell.
-                    // The cellsDependentOnThisCells array will be changed due to the dependent cells changing in value,
+                    // The cellsDependentOnThisCells array will be changed during the dependent cells changing in value,
                     // so we need to work with a copy of the original that won't be changed during the loop.
-                    var originalDependentCells = cellsDependentOnThisCell.slice(0);
-                    originalDependentCells.forEach( function(el) { el.generateComputedValue(); } );
+                    cellsDependentOnThisCell.slice(0).forEach( function(el) { el.generateComputedValue(); } );
                     console.log( grid.computeCellReference(cellObject) + ' computedValue set to: ' + computedValue );
                 } else {
                     console.log( grid.computeCellReference(cellObject) + ' computedValue unchanged from existing value, ' + computedValue );

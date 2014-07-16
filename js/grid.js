@@ -132,27 +132,47 @@ var grid = (function() {
     // >> Functions to deal with cell creation and deletion, and row sorting.
 
     // Removes and destroys the row of cells containing the argument cell object from the grid and the DOM.
-    var destroyRow = function(cellObj) {
+    var destroyRow = function(cellObject) {
 
         // The grid must have at least one row.
         if (gridArray.length <= 2) { return; }
 
-        var rowIndex = findCellIndex(cellObj).row,
+        var rowIndex = findCellIndex(cellObject).row,
             rowArray = gridArray[rowIndex];
 
-        // Remove the row from the gridArray. This must be done before invoking destroy() on the cells.
+        // Remove the row from the gridArray. This must be done before invoking destroy() on the cells,
+        // as dependent cells tell if a cell has been destroyed by it being absent from the grid.
         gridArray.splice(rowIndex, 1);
 
-        // Destroy the non-heading cell objects within the row.
-        // This is needed to tell dependent and referenced cells objects.
-        rowArray.shift();
+        // Destroy the cell objects within the row.
+        // This is needed to tell dependent and referenced cells objects of the destroyed cell.
         rowArray.forEach( function(el) { el.destroy(); } );
 
         var trObject = tableEl.querySelector( 'tr:nth-of-type(' + (rowIndex+1) + ')' );
         tableEl.removeChild(trObject);
 
         writeRowHeadings(rowIndex);
+    };
 
+    var destroyColumn = function(cellObject) {
+
+        // The grid must have at least one column.
+        if (gridArray[0].length <= 2) { return; }
+
+        var colIndex = findCellIndex(cellObject).col;
+
+        // The entire column must all be removed before destroy() is invoked, so that regenerated cell references
+        // within formulas are accurate. eg "=E5" would become "=D5" if column B was removed, but this would only happen
+        // after column B was completely removed, rather than just cell B5.
+        var removedCells = [];
+
+        // Remove and then destroy each cell. Each cell's destroy() method also removes its DOM td object.
+        for (var i = 0, len = gridArray.length; i < len; i++) {
+            removedCells.push( gridArray[i].splice(colIndex, 1)[0] );
+        }
+        removedCells.forEach( function(el) {el.destroy()} );
+
+        writeColHeadings(colIndex);
     };
 
     // >> End cell creation, deletion and sorting functions.
@@ -330,6 +350,7 @@ var grid = (function() {
         computeCellReference: computeCellReference, 
         computeFormulaFunction: computeFormulaFunction,
         destroyRow: destroyRow,
+        destroyColumn: destroyColumn,
     };
 
 }());

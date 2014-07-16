@@ -14,7 +14,8 @@ var menu = (function() {
     // The nameBox is a text 'input' element into which the user can type cell references.
     var messageBar = document.getElementById('messageBar'),
         nameBox = document.getElementById('nameBox'),
-        destroyRowButton = document.getElementById('destroyRow');
+        destroyRowButton = document.getElementById('destroyRow'),
+        destroyColButton = document.getElementById('destroyColumn');
 
     // Set a new message in the messageBar. If no message is passed (eg empty string), messageBar is reset.
     var setMessage = function(message) {
@@ -51,6 +52,7 @@ var menu = (function() {
     }, false)
 
     destroyRowButton.addEventListener('click', function() { grid.destroyRow(activeCell); }, false);
+    destroyColButton.addEventListener('click', function() { grid.destroyColumn(activeCell); }, false);
 
     return {
         newActiveCell: newActiveCell,
