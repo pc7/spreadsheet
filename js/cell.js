@@ -53,10 +53,15 @@ var createCell = function(trObject, index) {
         // Need to explicitly focus the input element, as activeCell status can be given using the nameBox, rather than just clicking the cell.
         inputEl.focus();
 
+        renderValue();
+
     };
 
     var removeActiveCellStatus = function() {
         tdObject.removeAttribute('id');
+        // Calculate a new computedValue if needed.
+        handleRawInput(inputEl.value);
+        renderValue();
     };
 
     // Make the cell the active cell if it is clicked on.
@@ -73,6 +78,21 @@ var createCell = function(trObject, index) {
         destroyView();
         // Giving the cell any new value will notify referenced and dependent cells.
         valueIsNotFormula('');
+    };
+
+    // Renders the value displayed in the cell's input box.
+    var renderValue = function() {
+        console.log('renderValue() invoked');
+        // If the cell is the active cell and has a formula value, render the formula value.
+        // Else, render the computed value.
+        if ( (tdObject.getAttribute('id') === 'activeCell') && formulaString) {
+            // Re-generate the formulaString, in case any cell references have changed.
+            generateFormulaString();
+            inputEl.value = formulaString;
+        } else {
+            inputEl.value = computedValue.get();
+        }
+
     };
 
     // >> End basic cell fields and methods.
@@ -110,10 +130,9 @@ var createCell = function(trObject, index) {
                 }
                 if (computedValue !== newValue) {
                     computedValue = newValue;
+                    renderValue();
                     if (computedValue !== null) {
-                        // inputEl.value = computedValue;
-                    } else {
-                        // inputEl.value = '';
+                        renderValue();
                     }
                     // If the computedValue is changed, tell the cells whose values are dependent on the value of this cell.
                     // The cellsDependentOnThisCells array will be changed during the dependent cells changing in value,
@@ -227,7 +246,7 @@ var createCell = function(trObject, index) {
     // Checks if the rawInput begins with zero of more whitespace characters, followed by an '=' sign.
     // If so, then the user intends the input to be a formula, although it may not turn out to be valid.
     var handleRawInput = function(rawInput) {
-        if (rawInput.match(/^\s*\=/)) {
+        if ( rawInput.match(/^\s*\=/) ) {
             // Continue processing the formula.
             processFormulaSyntax(rawInput);
         } else {
@@ -265,10 +284,19 @@ var createCell = function(trObject, index) {
         //   OR the whole thing consists only of one cell reference, or one or more digits, or one function.
         var valid = tempFormulaString.replace( /((([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))[\+\-\*\/])+(([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))|([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\))/, '' );
 
-        // If formula is not valid, stop processing.
+        // If formula syntax is not valid, stop processing.
         if (valid !== '') {
+            var message;
+            // If the input has already been vetted as a formula containing a bad reference, it will contain '#REF!'.
+            // In this case it will already have a relevant error message, so don't overwrite this message with
+            // another one saying that the characters '#REF!' are not valid formula syntax.
+            if ( rawInput.match(/\#REF\!/) ) {
+                message = errorMessage.get();
+            } else {
+                message = "Formula contains incorrect syntax. See the 'instructions' tab for limitations.";
+            }
             //console.log('invalid formula syntax.');
-            invalidFormula(rawInput, "Formula contains incorrect syntax. See the 'instructions' tab for limitations.");
+            invalidFormula(rawInput, message);
             return;
         }
 
@@ -510,12 +538,12 @@ var createCell = function(trObject, index) {
     // Cell objects in the formulaStringTemplate are replaced by their computed values.
     // ["5+", {cellObject}, "-7"] will be turned into "=5+B2-7".
     var generateFormulaString = function() {
-
+        console.log('generateFormulaString invoked')
         // > create a tempString instead.
         var tempArray = [];
         for (var i = 0, len = formulaStringTemplate.length; i < len; i++) {
             if (typeof formulaStringTemplate[i] === "object") {
-                tempArray[i] = formulaStringTemplate[i].evaluateFormulaTemplate();
+                tempArray[i] = grid.computeCellReference(formulaStringTemplate[i]);
             } else {
                 tempArray[i] = formulaStringTemplate[i];
             }
