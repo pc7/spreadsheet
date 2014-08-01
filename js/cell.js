@@ -77,12 +77,14 @@ var createCell = function(trObject, index) {
     var destroy = function() {
         destroyView();
         // Giving the cell any new value will notify referenced and dependent cells.
-        valueIsNotFormula('');
+        // It's new value must be different to its existing value, so that the other cells are notified.
+        // Adding the existing value to a new string assures that the value will be changed.
+        valueIsNotFormula(computedValue.get() + ' destroyed');
     };
 
     // Renders the value displayed in the cell's input box.
     var renderValue = function() {
-        console.log('renderValue() invoked');
+        //console.log('renderValue() invoked');
         // If the cell is the active cell and has a formula value, render the formula value.
         // Else, render the computed value.
         if ( (tdObject.getAttribute('id') === 'activeCell') && formulaString) {
@@ -184,11 +186,13 @@ var createCell = function(trObject, index) {
 
     // Adds a new cell object as a dependent cell.
     var addDependentCell = function(cellObj) {
+        //console.log(grid.computeCellReference(cellObj) + ' is now dependent on ' + grid.computeCellReference(cellObject))
         cellsDependentOnThisCell.push(cellObj);
     };
 
     // Remove one reference to a dependent cell object. Other references to the same cell will remain.
     var removeDependentCell = function(cellObj) {
+        //console.log(grid.computeCellReference(cellObj) + ' is no longer dependent on ' + grid.computeCellReference(cellObject))
         cellsDependentOnThisCell.splice( cellsDependentOnThisCell.indexOf(cellObj), 1 );
     };
 
@@ -255,7 +259,8 @@ var createCell = function(trObject, index) {
         }
     };
 
-    inputEl.addEventListener('change', function() { handleRawInput(inputEl.value) }, false);
+    // source of firefox bug, delete this statement.
+    //inputEl.addEventListener('change', function() { handleRawInput(inputEl.value); console.log('change event fired, value: ' + String(inputEl.value)) }, false);
 
     // The handleRawInput() function has shown that the user intends their input to be a formula.
     // The processFormulaSyntax() function checks formula syntax.
@@ -538,7 +543,7 @@ var createCell = function(trObject, index) {
     // Cell objects in the formulaStringTemplate are replaced by their computed values.
     // ["5+", {cellObject}, "-7"] will be turned into "=5+B2-7".
     var generateFormulaString = function() {
-        console.log('generateFormulaString invoked')
+        //console.log('generateFormulaString invoked')
         // > create a tempString instead.
         var tempArray = [];
         for (var i = 0, len = formulaStringTemplate.length; i < len; i++) {

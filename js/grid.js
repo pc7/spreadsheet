@@ -10,8 +10,8 @@ var grid = (function() {
 
     // >> Grid generation, and finding column references from the column index.
 
-    // Starting dimensions of the spreadsheet grid, x number of columns and y number of rows.
-    var initialDimensions = {x: 58, y: 45};
+    // Starting dimensions of the spreadsheet grid, x number of columns and y number of rows, including headings.
+    var initialDimensions = {x: 5, y: 15};
 
     var gridArray = [],
         tableEl = document.querySelector('#spreadsheetContainer table');
@@ -32,8 +32,11 @@ var grid = (function() {
 
         var trEl = document.createElement('tr');
 
+        // Length of each row. Length of existing rows, or initialDimensions.x if first row hasn't been generated.
+        var xLength = gridArray[0].length ? gridArray[0].length : initialDimensions.x;
+
         // Create the cells within the row.
-        for (var colIndex = 0, xLength = initialDimensions.x; colIndex < xLength; colIndex++) {
+        for (var colIndex = 0; colIndex < xLength; colIndex++) {
 
             // Create grid squares within row. The grid square's td object will be appended to the argument tr object.
             // Create heading cells if the row or column is index 0.
@@ -293,28 +296,28 @@ var grid = (function() {
     // If function is not valid, returns an error message string, {message: ""}.
     // The function string should already have been vetted as having valid syntax, and the delimiter cells as existing.
     var computeFormulaFunction = function(cellObject, funcString) {
-        console.log('grid.computeFormulaFunction invoked, arg: ' + funcString);
+        //console.log('grid.computeFormulaFunction invoked, arg: ' + funcString);
 
         // Get the function type, and remove it from the argument string, leaving "(B15:A1)".
         var funcNames = /(SUM|MEAN|MAX|MIN)/,
             funcName = funcString.match(funcNames)[0],
             funcString = funcString.replace(funcNames, '');
 
-        console.log('... funcName is: ' + funcName + ', funcString is now: ' + funcString);
+        //console.log('... funcName is: ' + funcName + ', funcString is now: ' + funcString);
 
         // Find the top left and bottom right coordinates in the range (the given cells could be the opposites).
         // This creates two arrays giving the index coordinates, eg rows [15, 1] and cols [2, 1].
         var rows = funcString.match(/\d+/g),
             cols = funcString.match(/[A-Z]+/g).map( function(el) { return computeColIndex(el) } );
 
-        console.log('... range index rows: ' + rows + ' cols: ' + cols );
+        //console.log('... range index rows: ' + rows + ' cols: ' + cols );
 
         // Order the rows and cols, leaving rows [1, 15] and cols [1, 2].
         var sortInOrder = function(firstEl, secondEl) { return firstEl - secondEl };
         rows.sort(sortInOrder);
         cols.sort(sortInOrder);
 
-        console.log('... range index rows: ' + rows + ' cols: ' + cols);
+        //console.log('... range index rows: ' + rows + ' cols: ' + cols);
 
         // Add all the cell objects in the range to the cellsInRange array, creating [{A1}, {A2}, {A3} ...etc].
         var cellsInRange = [];
@@ -322,7 +325,7 @@ var grid = (function() {
             for (var j = cols[0], l = cols[1]; j <= l; j++) {
                 //console.log('... i: ' + i + ' j: ' + j + ' cell: ' + gridArray[i][j]);
                 cellsInRange.push(gridArray[i][j]);
-                console.log('... cell ' + grid.computeCellReference(cellsInRange[cellsInRange.length-1]) + ' added to cellsInRange array.');
+                //console.log('... cell ' + grid.computeCellReference(cellsInRange[cellsInRange.length-1]) + ' added to cellsInRange array.');
             }
         }
 
@@ -349,13 +352,13 @@ var grid = (function() {
             };
         }
 
-        console.log('valuesInRange: ' + valuesInRange);
+        //console.log('valuesInRange: ' + valuesInRange);
 
         // Return the value of the function, and the cells within the range (that the calling cell is now dependent on).
         switch (funcName) {
 
             case "SUM":
-                console.log('SUM matched in switch statement');
+                //console.log('SUM matched in switch statement');
                 return {
                     value: valuesInRange.reduce( function(total, el) { return total + el } ),
                     rangeCells: cellsInRange,
