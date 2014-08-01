@@ -263,7 +263,7 @@ var createCell = function(trObject, index) {
         //   Repeat the above line one or more times.
         //   Ending with one cell reference, or one or more digits, or one function.
         //   OR the whole thing consists only of one cell reference, or one or more digits, or one function.
-        var valid = tempFormulaString.replace( /((([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))[\+\-\*\/])+(([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))|([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\))/, '' );
+        var valid = tempFormulaString.replace( /((([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))[\+\-\*\/])+(([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))|([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\))/, '' );
 
         // If formula is not valid, stop processing.
         if (valid !== '') {

@@ -15,4 +15,10 @@ var domUtils = {
 
     },
 
+    // Returns a child element of a given type, that is the nth child using a zero-based index.
+    // The child element type is the HTML element's string name, eg 'td', 'div'.
+    getNthChildOfType: function(parentEl, childElType, index) {
+        return parentEl.querySelector( childElType + ':nth-of-type(' + (index+1) +')' );
+    },
+
 };

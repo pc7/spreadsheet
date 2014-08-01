@@ -154,7 +154,7 @@ var grid = (function() {
 
         // Loop through all grid and DOM rows, and add a newly created cell at the given column index.
         for (var rowIndex = 0, len = gridArray.length; rowIndex < len; rowIndex++) {
-            var currentTrElement = tableEl.querySelector( 'tr:nth-of-type(' + (rowIndex+1) + ')' );
+            var currentTrElement = domUtils.getNthChildOfType(tableEl, 'tr', rowIndex);
             if (rowIndex !== 0) {
                 var newCell = createCell( currentTrElement, colIndex );
             } else {
@@ -187,7 +187,7 @@ var grid = (function() {
         // This is needed to tell dependent and referenced cells objects of the destroyed cell.
         rowArray.forEach( function(el) { el.destroy(); } );
 
-        var trObject = tableEl.querySelector( 'tr:nth-of-type(' + (rowIndex+1) + ')' );
+        var trObject = domUtils.getNthChildOfType(tableEl, 'tr', rowIndex);
         tableEl.removeChild(trObject);
 
         writeRowHeadings(rowIndex);
