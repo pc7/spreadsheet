@@ -21,22 +21,17 @@ var grid = (function() {
 
         // If index is 0 or not given, append the row as the final row.
         // The first automatically generated row is the headings row. Other than that, we can't append rows at index 0.
-        var index = index ? index : gridArray.length;
+        var index = index || gridArray.length;
 
         // Create row array and append it at the given index.
         gridArray.splice(index, 0, []);
 
-        // If there are no rows on the grid, length of the newly created row is set by initialDimensions.
-        // Otherwise, newly created row is the same length as the existing rows.
-        var rowLength = gridArray[0].length ? gridArray[0].length : initialDimensions.y;
-
         var trEl = document.createElement('tr');
 
-        // Length of each row. Length of existing rows, or initialDimensions.x if first row hasn't been generated.
-        var xLength = gridArray[0].length ? gridArray[0].length : initialDimensions.x;
-
         // Create the cells within the row.
-        for (var colIndex = 0; colIndex < xLength; colIndex++) {
+        // If there are no rows on the grid, length of the newly created row (xLength) is set by initialDimensions.
+        // Otherwise, newly created row is the same length as the existing rows.
+        for (var colIndex = 0, xLength = gridArray[0].length || initialDimensions.x; colIndex < xLength; colIndex++) {
 
             // Create grid squares within row. The grid square's td object will be appended to the argument tr object.
             // Create heading cells if the row or column is index 0.
@@ -225,7 +220,7 @@ var grid = (function() {
 
     // Takes a full valid cell reference string as an argument, eg "A5", and returns the row reference, eg "5".
     var extractRowReference = function(referenceString) {
-        return referenceString.replace( /[A-Z]+/, '' ).match( /[0-9]+/ ).join('');
+        return referenceString.replace( /[A-Z]+/, '' ).match( /\d+/ ).join('');
     };
 
     // Takes a full valid cell reference string as an argument, eg "A5", and returns the column reference, eg "A".

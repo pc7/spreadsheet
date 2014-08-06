@@ -17,7 +17,11 @@ var menu = (function() {
         destroyRowButton = document.getElementById('destroyRow'),
         destroyColButton = document.getElementById('destroyColumn'),
         createRowButton = document.getElementById('createRow'),
-        createColButton = document.getElementById('createColumn');
+        createColButton = document.getElementById('createColumn'),
+        submitFunctionButton = document.getElementById('submitFunction'),
+        selectFunctionName = document.getElementById('selectFunctionName'),
+        firstRangeCell = document.getElementById('firstRangeCell'),
+        secondRangeCell = document.getElementById('secondRangeCell');
 
     // Set a new message in the messageBar. If no message is passed (eg empty string), messageBar is reset.
     var setMessage = function(message) {
@@ -53,10 +57,29 @@ var menu = (function() {
         }
     }, false)
 
-    destroyRowButton.addEventListener('click', function() { grid.destroyRow(activeCell); }, false);
-    destroyColButton.addEventListener('click', function() { grid.destroyColumn(activeCell); }, false);
-    createRowButton.addEventListener('click', function() { grid.createNewRow(activeCell); }, false);
-    createColButton.addEventListener('click', function() { grid.createNewColumn(activeCell); }, false);
+    // Add button handlers, which do nothing if there is no active cell.
+    destroyRowButton.addEventListener('click', function() {
+        if (!activeCell) { return; }
+        grid.destroyRow(activeCell);
+    }, false);
+    destroyColButton.addEventListener('click', function() {
+        if (!activeCell) { return; }
+        grid.destroyColumn(activeCell);
+    }, false);
+    createRowButton.addEventListener('click', function() {
+        if (!activeCell) { return; }
+        grid.createNewRow(activeCell);
+    }, false);
+    createColButton.addEventListener('click', function() {
+        if (!activeCell) { return; }
+        grid.createNewColumn(activeCell);
+    }, false);
+    submitFunctionButton.addEventListener('click', function() {
+        if (!activeCell) { return; }
+        activeCell.setInputValue('=' + selectFunctionName.value + '(' + firstRangeCell.value + ':' + secondRangeCell.value + ')');
+        firstRangeCell.value = null;
+        secondRangeCell.value = null;
+    }, false);
 
     return {
         newActiveCell: newActiveCell,

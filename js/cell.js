@@ -24,6 +24,11 @@ var createCell = function(trObject, index) {
     // Needs to be explicitly referred to in an event handler, so needs an identifier.
     var cellObject = {};
 
+    // Allows the value of the inputEl to be set externally (eg by the menu object). Same as the user entering text.
+    var setInputValue = function(value) {
+        inputEl.value = value;
+    };
+
     // Deappends the DOM tdObject from the trObject.
     var destroyView = function() {
         trObject.removeChild(tdObject);
@@ -36,7 +41,7 @@ var createCell = function(trObject, index) {
             get: function() { return storedMessage },
             set: function(message) {
                 // Reset message if no message is passed as an argument.
-                storedMessage = message ? message : '';
+                storedMessage = message || '';
                 // If a new message is assigned while the cell is the active cell, display the message in the menu.
                 if (tdObject.getAttribute('id') === 'activeCell') { menu.setMessage(message) }
             },
@@ -46,20 +51,17 @@ var createCell = function(trObject, index) {
 
     // Gives the cell active cell status. Active cell status is indicated by the tdObject having the '#activeCell' id.
     var makeActiveCell = function() {
-
         tdObject.setAttribute('id', 'activeCell');
         menu.newActiveCell(cellObject);
-
-        // Need to explicitly focus the input element, as activeCell status can be given using the nameBox, rather than just clicking the cell.
+        // Need to explicitly focus the input element, as activeCell status can be given using the nameBox,
+        // rather than just clicking the cell.
         inputEl.focus();
-
         renderValue();
-
     };
 
     var removeActiveCellStatus = function() {
         tdObject.removeAttribute('id');
-        // Calculate a new computedValue if needed.
+        // A new input value is submitted when the cell loses activeCell status. Calculate a new computedValue if needed.
         handleRawInput(inputEl.value);
         renderValue();
     };
@@ -140,16 +142,16 @@ var createCell = function(trObject, index) {
                     // The cellsDependentOnThisCells array will be changed during the dependent cells changing in value,
                     // so we need to work with a copy of the original that won't be changed during the loop.
                     cellsDependentOnThisCell.slice(0).forEach( function(el) { el.generateComputedValue(); } );
-                    console.log( grid.computeCellReference(cellObject) + ' computedValue set to: ' + computedValue );
+                    //console.log( grid.computeCellReference(cellObject) + ' computedValue set to: ' + computedValue );
                 } else {
-                    console.log( grid.computeCellReference(cellObject) + ' computedValue unchanged from existing value, ' + computedValue );
+                    //console.log( grid.computeCellReference(cellObject) + ' computedValue unchanged from existing value, ' + computedValue );
                 }
             },
             // Get the computedValue without re-evaluating the formula, when referenced cells in formula haven't changed.
             get: function() { return computedValue; },
             // Calculate the computedValue when user input is a formula, or when a cell referenced in formula is changed.
             generate: function() {
-                console.log( 'generateComputedValue() invoked for cell ' + grid.computeCellReference(cellObject) );
+                //console.log( 'generateComputedValue() invoked for cell ' + grid.computeCellReference(cellObject) );
                 // If the cell has a formula value, generate the computedValue using the formulaStringTemplate.
                 if (formulaString) {
                     evaluateFormulaTemplate();
@@ -287,7 +289,7 @@ var createCell = function(trObject, index) {
         //   Repeat the above line one or more times.
         //   Ending with one cell reference, or one or more digits, or one function.
         //   OR the whole thing consists only of one cell reference, or one or more digits, or one function.
-        var valid = tempFormulaString.replace( /((([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))[\+\-\*\/])+(([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\)))|([A-Z]+[0-9]+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+[0-9]+\:[A-Z]+[0-9]+\))/, '' );
+        var valid = tempFormulaString.replace( /((([A-Z]+\d+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+\d+\:[A-Z]+\d+\)))[\+\-\*\/])+(([A-Z]+\d+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+\d+\:[A-Z]+\d+\)))|([A-Z]+\d+)|(\-?\d+(\.\d+)?)|((SUM|MEAN|MAX|MIN)\([A-Z]+\d+\:[A-Z]+\d+\))/, '' );
 
         // If formula syntax is not valid, stop processing.
         if (valid !== '') {
@@ -324,10 +326,10 @@ var createCell = function(trObject, index) {
         // Replace cell references with "#", find the associated cell objects, then add them into the array.
         // tempFormulaString for "A5+5+SUM(B1:B3)" will be "#+5+SUM(#:#)" and cellReferences will be ["A5", "B1", "B3"].
         var cellReferences = [];
-        while (tempFormulaString.match(/[A-Z]+[0-9]+/)) {
+        while (tempFormulaString.match(/[A-Z]+\d+/)) {
             //console.log('reference string identified and replaced: ' + formulaString.match(/[A-Z]+[0-9]+/)[0]);
-            cellReferences.push(tempFormulaString.match(/[A-Z]+[0-9]+/)[0]);
-            tempFormulaString = tempFormulaString.replace(/[A-Z]+[0-9]+/, '#');
+            cellReferences.push(tempFormulaString.match(/[A-Z]+\d+/)[0]);
+            tempFormulaString = tempFormulaString.replace(/[A-Z]+\d+/, '#');
         }
 
         //console.log('tempFormulaString: '+tempFormulaString);
@@ -384,20 +386,6 @@ var createCell = function(trObject, index) {
     // If there are no problems, a new computedValue will be assigned, as well as the cellsDependentOnThisCell and
     // cellsReferencedInFormula arrays.
     var evaluateFormulaTemplate = function() {
-
-        /*
-        // test to see if formulaString can be reconstituted.
-        for (var i = 0; i < formulaStringTemplate.length; i++) {
-            if (typeof formulaStringTemplate[i] === "object") {
-                formulaStringTemplate[i] = grid.computeCellReference(formulaStringTemplate[i]);
-            }
-        }
-        var x = formulaStringTemplate.join('');
-        console.log('reconstituted formulaString: ' +x);
-        // end test
-        */
-
-        // Bug: /^\d+([\+\-\*\/]\d+)+$/
 
         formulaString = "";
 
@@ -491,7 +479,7 @@ var createCell = function(trObject, index) {
                 //console.log('evalString function replaced, evalString is now: ' + evalString);
                 // Add all the cells in the range to the temp referenced cells array.
                 tempCellsReferencedInFormula = tempCellsReferencedInFormula.concat(computedFunctionResult.rangeCells);
-                console.log('tempCellsReferencedInFormula is now: ' + tempCellsReferencedInFormula);
+                //console.log('tempCellsReferencedInFormula is now: ' + tempCellsReferencedInFormula);
             } else {
                 // If error message returned, then function (and therefore whole formula) is not valid.
                 return invalidFormula(formulaString, computedFunctionResult.message);
@@ -579,6 +567,7 @@ var createCell = function(trObject, index) {
     // >> End processing user input.
 
     // Public methods.
+    cellObject.setInputValue = setInputValue;
     cellObject.makeActiveCell = makeActiveCell;
     cellObject.removeActiveCellStatus = removeActiveCellStatus;
     cellObject.getErrorMessage = errorMessage.get;
