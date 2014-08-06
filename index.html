@@ -16,10 +16,10 @@
       <div id="menu">
         <input id="nameBox" placeholder="eg A1" />
         <span id="messageBar" class="hasMessage">Click the grey 'instructions' tab for full instructions.</span><br />
-        <button id="destroyRow">Remove the active cell's row</button>
-        <button id="destroyColumn">Remove the active cell's column</button><br />
-        <button id="createRow">Create new row below the active cell's row</button>
-        <button id="createColumn">Create new column after the active cell's column</button><br />
+        <button id="destroyRow" disabled>Remove the active cell's row</button>
+        <button id="destroyColumn" disabled>Remove the active cell's column</button><br />
+        <button id="createRow" disabled>Create new row below the active cell's row</button>
+        <button id="createColumn" disabled>Create new column after the active cell's column</button><br />
         <span>Set cell's value as a function formula:<br />
           Function:
           <select id="selectFunctionName">
@@ -32,7 +32,7 @@
           <input id="firstRangeCell" placeholder="eg A1" />
           End of range:
           <input id="secondRangeCell" placeholder="eg A1"/>
-          <button id="submitFunction">Set cell content</button>
+          <button id="submitFunction" disabled>Set cell content</button>
       </div>
       <table>
         <!-- Will be filled with a dynamically generated table. -->

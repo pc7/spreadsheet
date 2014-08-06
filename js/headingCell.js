@@ -1,4 +1,5 @@
 /*
+ * Written by P Cope.
  * Generates and returns a heading cell object, and an associated DOM th object. The DOM object is appended to the argument tr object at the given index.
  */
 

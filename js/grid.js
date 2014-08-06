@@ -1,4 +1,5 @@
 /*
+ * Written by P Cope.
  * Grid is a two-dimensional array containing cell objects.
  * Parallel to this is a DOM table object, with each cell having an associated td object.
  */
@@ -312,11 +313,13 @@ var grid = (function() {
         rows.sort(sortInOrder);
         cols.sort(sortInOrder);
 
-        //console.log('... range index rows: ' + rows + ' cols: ' + cols);
+        //console.log('... range index rows: ' + rows + ' cols: ' + cols + ', rows length: '+ rows.length + 'colsLength: ' + cols.length);
+        //console.log('... rows[0]: ' + rows[0] + ' rows[1]: ' + rows[1] + ' cols[0]: ' + cols[0] + ' cols[1]: ' + cols[1]);
+        //console.log('... typeof rows[0]: ' + typeof rows[0] + ' rows[1]: ' + typeof rows[1] + ' cols[0]: ' + typeof cols[0] + ' cols[1]: ' + typeof cols[1]);
 
         // Add all the cell objects in the range to the cellsInRange array, creating [{A1}, {A2}, {A3} ...etc].
         var cellsInRange = [];
-        for (var i = rows[0], len = rows[1]; i <= len; i++) {
+        for (var i = Number(rows[0]), len = Number(rows[1]); i <= len; i++) {
             for (var j = cols[0], l = cols[1]; j <= l; j++) {
                 //console.log('... i: ' + i + ' j: ' + j + ' cell: ' + gridArray[i][j]);
                 cellsInRange.push(gridArray[i][j]);
@@ -382,6 +385,26 @@ var grid = (function() {
         return 1;
     };
 
+    // Removes the existing row and column heading highlighting.
+    // If the argument is truthy, also adds the 'highlight' class to the 'th' element row and column headings,
+    // of the row and column that contain the argument object.
+    var highlightHeadings = function(el) {
+        // Remove existing heading highlights.
+        var highlighted = document.querySelectorAll('.highlighted');
+        for (var i = 0, len = highlighted.length; i < len; i++) {
+            highlighted[i].classList.remove('highlighted');
+        }
+
+        // If there is no new active cell, return after removing the existing highlighting.
+        if (!el) { return; }
+
+        // Add heading highlights for new active cell.
+        var index = findCellIndex(el);
+        tableEl.children[index.row].firstElementChild.classList.add('highlighted');
+        tableEl.children[0].children[index.col].classList.add('highlighted');
+
+    };
+
     return {
         findCellObject: findCellObject,
         computeCellReference: computeCellReference, 
@@ -390,6 +413,7 @@ var grid = (function() {
         destroyColumn: destroyColumn,
         createNewRow: createNewRow,
         createNewColumn: createNewColumn,
+        highlightHeadings: highlightHeadings,
     };
 
 }());

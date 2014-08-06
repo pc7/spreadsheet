@@ -1,4 +1,5 @@
 // Utility DOM methods.
+// Written by P Cope.
 var domUtils = {
 
     // Appends a child element to a parent element at a given index.

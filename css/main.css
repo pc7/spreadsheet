@@ -37,3 +37,7 @@ html {
 .hasMessage {
   background-color: #fdfd99;
 }
+
+#spreadsheetContainer th.highlighted {
+  background-color: #ddd;
+}

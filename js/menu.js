@@ -1,4 +1,5 @@
 /*
+ * Written by P Cope.
  * Contains DOM menu controls, and handles the active cell.
  */
 
@@ -23,6 +24,9 @@ var menu = (function() {
         firstRangeCell = document.getElementById('firstRangeCell'),
         secondRangeCell = document.getElementById('secondRangeCell');
 
+    // Needed for enabling and disabling buttons as a group.
+    var allButtons = [destroyRowButton, destroyColButton, createRowButton, createColButton, submitFunctionButton];
+
     // Set a new message in the messageBar. If no message is passed (eg empty string), messageBar is reset.
     var setMessage = function(message) {
         if (message) {
@@ -37,14 +41,19 @@ var menu = (function() {
     // Invoked by a cell object when it becomes the active cell, or when a cell loses active cell status.
     var newActiveCell = function(cellObject) {
         // If the active cell is being destroyed, no new active cell is given, so just set activeCell to null.
+        // Also enable and disable buttons based on whether or not there is currently an active cell.
         if (!cellObject) {
+            allButtons.forEach( function(el) { el.setAttribute('disabled', '') } );
             activeCell = null;
+            grid.highlightHeadings();
             return;
         }
         // Remove active cell status from the previous active cell, and store a reference to the new active cell.
         if (activeCell && (activeCell !== cellObject)) { activeCell.removeActiveCellStatus(); }
+
         activeCell = cellObject;
-        // Put the cell's string reference as the value of the nameBox.
+        grid.highlightHeadings(cellObject);
+        allButtons.forEach( function(el) { el.removeAttribute('disabled') } );
         nameBox.value = grid.computeCellReference(cellObject);
         // Clear previous message and display the cell's error message if available.
         setMessage(cellObject.getErrorMessage());
@@ -62,25 +71,12 @@ var menu = (function() {
         }
     }, false)
 
-    // Add button handlers, which do nothing if there is no active cell.
-    destroyRowButton.addEventListener('click', function() {
-        if (!activeCell) { return; }
-        grid.destroyRow(activeCell);
-    }, false);
-    destroyColButton.addEventListener('click', function() {
-        if (!activeCell) { return; }
-        grid.destroyColumn(activeCell);
-    }, false);
-    createRowButton.addEventListener('click', function() {
-        if (!activeCell) { return; }
-        grid.createNewRow(activeCell);
-    }, false);
-    createColButton.addEventListener('click', function() {
-        if (!activeCell) { return; }
-        grid.createNewColumn(activeCell);
-    }, false);
+    // Add button handlers.
+    destroyRowButton.addEventListener('click', function() { grid.destroyRow(activeCell); }, false);
+    destroyColButton.addEventListener('click', function() { grid.destroyColumn(activeCell); }, false);
+    createRowButton.addEventListener('click', function() { grid.createNewRow(activeCell); }, false);
+    createColButton.addEventListener('click', function() { grid.createNewColumn(activeCell); }, false);
     submitFunctionButton.addEventListener('click', function() {
-        if (!activeCell) { return; }
         activeCell.setInputValue('=' + selectFunctionName.value + '(' + firstRangeCell.value + ':' + secondRangeCell.value + ')');
         firstRangeCell.value = null;
         secondRangeCell.value = null;

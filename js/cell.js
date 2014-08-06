@@ -1,4 +1,5 @@
 /*
+ * Written by P Cope.
  * Generates and returns a cell object, and an associated DOM td object. The DOM object is appended to the argument tr object at the given index.
  */
 
@@ -66,18 +67,10 @@ var createCell = function(trObject, index) {
     };
 
     // Removes active cell status, and submits that value of the cell.
-    var removeActiveCellStatus = function(isBeingDestroyed) {
+    var removeActiveCellStatus = function() {
         tdObject.removeAttribute('id');
-        // Value needs to be submitted even if cell is being destroyed, as this notifies dependent cells.
-        submitValue();
-        // If cell is being destroyed, removes the activeCell reference to this cell in the menu object.
-        if (isBeingDestroyed) {
-            menu.newActiveCell();
-        }
-    };
-
-    var submitValue = function() {
         // A new input value is submitted when the cell loses activeCell status. Calculate a new computedValue if needed.
+        // Value needs to be submitted and rendered even if cell is being destroyed, as this notifies dependent cells.
         handleRawInput(inputEl.value);
         renderValue();
     };
@@ -97,7 +90,12 @@ var createCell = function(trObject, index) {
         // Its new value must be different to its existing value, so that the other cells are notified.
         // Adding the existing value to a new string assures that the value will be changed.
         inputEl.value = computedValue.get() + ' destroyed';
-        removeActiveCellStatus(true);
+        if ( tdObject.getAttribute('id') === 'activeCell' ) {
+            removeActiveCellStatus();
+            menu.newActiveCell();
+        } else {
+            handleRawInput(inputEl.value);
+        }
         destroyView();
     };
 
