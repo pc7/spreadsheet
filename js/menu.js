@@ -34,8 +34,13 @@ var menu = (function() {
         }
     };
 
-    // Invoked by a cell object when it becomes the active cell.
+    // Invoked by a cell object when it becomes the active cell, or when a cell loses active cell status.
     var newActiveCell = function(cellObject) {
+        // If the active cell is being destroyed, no new active cell is given, so just set activeCell to null.
+        if (!cellObject) {
+            activeCell = null;
+            return;
+        }
         // Remove active cell status from the previous active cell, and store a reference to the new active cell.
         if (activeCell && (activeCell !== cellObject)) { activeCell.removeActiveCellStatus(); }
         activeCell = cellObject;

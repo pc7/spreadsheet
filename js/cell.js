@@ -34,6 +34,12 @@ var createCell = function(trObject, index) {
         trObject.removeChild(tdObject);
     };
 
+    // Add and remove the 'blurred' class based on whether the inputEl is focused.
+    // Due to the CSS rules, the class will only ever affect the active cell.
+    // This is needed to show the user when the active cell has lost focus, so they can focus it again before typing.
+    inputEl.addEventListener('focus', function() { tdObject.classList.remove('blurred'); }, false);
+    inputEl.addEventListener('blur', function() { tdObject.classList.add('blurred'); }, false);
+
     // The error message associated with the cell, eg an invalid formula. Empty string if there is not a message.
     var errorMessage = (function() {
         var storedMessage = '';
@@ -59,8 +65,18 @@ var createCell = function(trObject, index) {
         renderValue();
     };
 
-    var removeActiveCellStatus = function() {
+    // Removes active cell status, and submits that value of the cell.
+    var removeActiveCellStatus = function(isBeingDestroyed) {
         tdObject.removeAttribute('id');
+        // Value needs to be submitted even if cell is being destroyed, as this notifies dependent cells.
+        submitValue();
+        // If cell is being destroyed, removes the activeCell reference to this cell in the menu object.
+        if (isBeingDestroyed) {
+            menu.newActiveCell();
+        }
+    };
+
+    var submitValue = function() {
         // A new input value is submitted when the cell loses activeCell status. Calculate a new computedValue if needed.
         handleRawInput(inputEl.value);
         renderValue();
@@ -77,11 +93,12 @@ var createCell = function(trObject, index) {
 
     // Removes the cell from the DOM, and notifies referenced and dependent cells.
     var destroy = function() {
-        destroyView();
-        // Giving the cell any new value will notify referenced and dependent cells.
-        // It's new value must be different to its existing value, so that the other cells are notified.
+        // Giving the cell any new value and removing active cell status will notify referenced and dependent cells.
+        // Its new value must be different to its existing value, so that the other cells are notified.
         // Adding the existing value to a new string assures that the value will be changed.
-        valueIsNotFormula(computedValue.get() + ' destroyed');
+        inputEl.value = computedValue.get() + ' destroyed';
+        removeActiveCellStatus(true);
+        destroyView();
     };
 
     // Renders the value displayed in the cell's input box.

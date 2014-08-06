@@ -30,6 +30,10 @@ html {
   outline: 2px solid #000;
 }
 
+#spreadsheetContainer #activeCell.blurred {
+  outline-color: #bbb;
+}
+
 .hasMessage {
   background-color: #fdfd99;
 }
