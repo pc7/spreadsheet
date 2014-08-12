@@ -14,25 +14,36 @@
   <body>
     <div id="spreadsheetContainer">
       <div id="menu">
-        <input id="nameBox" placeholder="eg A1" />
+        <input id="nameBox" placeholder="eg A1" /><button>Select cell</button>
         <span id="messageBar" class="hasMessage">Click the grey 'instructions' tab for full instructions.</span><br />
         <button id="destroyRow" disabled>Remove the active cell's row</button>
         <button id="destroyColumn" disabled>Remove the active cell's column</button><br />
         <button id="createRow" disabled>Create new row below the active cell's row</button>
         <button id="createColumn" disabled>Create new column after the active cell's column</button><br />
-        <span>Set cell's value as a function formula:<br />
+        <span id="setFunctionFormulaContent">Set cell's value as a function formula:<br />
           Function:
-          <select id="selectFunctionName">
+          <select>
             <option>Sum</option>
             <option>Mean</option>
             <option>Max</option>
             <option>Min</option>
           </select>
           Start of range:
-          <input id="firstRangeCell" placeholder="eg A1" />
+          <input placeholder="eg A1" />
           End of range:
-          <input id="secondRangeCell" placeholder="eg A1"/>
-          <button id="submitFunction" disabled>Set cell content</button>
+          <input placeholder="eg A1"/>
+          <button disabled>Set cell content</button>
+        </span>
+        <br />
+        <label>
+          <input type="radio" name="arrowKeys" checked />
+          Arrow keys navigate cells.
+        </label>
+        <br />
+        <label>
+          <input type="radio" name="arrowKeys" />
+          Arrow keys move cursor within cells.
+        </label>
       </div>
       <table>
         <!-- Will be filled with a dynamically generated table. -->

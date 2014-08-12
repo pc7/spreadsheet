@@ -15,22 +15,23 @@ var menu = (function() {
     // The nameBox is a text 'input' element into which the user can type cell references.
     var messageBar = document.getElementById('messageBar'),
         nameBox = document.getElementById('nameBox'),
+        nameBoxButton = document.querySelector('#nameBox + button'),
         destroyRowButton = document.getElementById('destroyRow'),
         destroyColButton = document.getElementById('destroyColumn'),
         createRowButton = document.getElementById('createRow'),
         createColButton = document.getElementById('createColumn'),
-        submitFunctionButton = document.getElementById('submitFunction'),
-        selectFunctionName = document.getElementById('selectFunctionName'),
-        firstRangeCell = document.getElementById('firstRangeCell'),
-        secondRangeCell = document.getElementById('secondRangeCell');
+        submitFunctionButton = document.querySelector('#setFunctionFormulaContent button'),
+        selectFunctionName = document.querySelector('#setFunctionFormulaContent select'),
+        firstRangeCell = document.querySelector('#setFunctionFormulaContent input:first-of-type'),
+        secondRangeCell = document.querySelector('#setFunctionFormulaContent input:last-of-type'),
+        arrowKeySelect = document.getElementsByName('arrowKeys')[0],
+        arrowKeyUnselect = document.getElementsByName('arrowKeys')[1];
 
     // Needed for enabling and disabling buttons as a group.
     var allButtons = [destroyRowButton, destroyColButton, createRowButton, createColButton, submitFunctionButton];
 
-    // Keyboard navigation using 'Enter' key.
-    document.addEventListener('keydown', function(evt) {
+    var arrowKeyHandlers = function(evt) {
         if (!activeCell) { return; }
-        //evt.preventDefault();
         switch (evt.keyCode) {
             case 13:
                 grid.findCellBelow(activeCell).makeActiveCell();
@@ -48,6 +49,21 @@ var menu = (function() {
                 grid.findCellBelow(activeCell).makeActiveCell();
                 break;
         }
+    };
+
+    // Keyboard navigation using 'Enter' and arrow keys.
+    document.addEventListener('keydown', arrowKeyHandlers, false);
+
+    // Add event handlers to arrow key radio button controls.
+    arrowKeySelect.addEventListener('change', function() {
+        document.addEventListener('keydown', arrowKeyHandlers, false);
+        // De-focus the radio button so that a down arrow key press doesn't check the next radio button instead.
+        nameBox.focus();
+    }, false);
+
+    arrowKeyUnselect.addEventListener('change', function() {
+        document.removeEventListener('keydown', arrowKeyHandlers, false);
+        nameBox.focus();
     }, false);
 
     // Set a new message in the messageBar. If no message is passed (eg empty string), messageBar is reset.
@@ -82,17 +98,25 @@ var menu = (function() {
         setMessage(cellObject.getErrorMessage());
     };
 
-    // If a valid cell reference is entered, makeActiveCell() is invoked for that cell when the 'Enter' key is pressed.
-    // If the submitted content isn't a valid cell reference, an error message is displayed in the messageBar.
-    nameBox.addEventListener('keypress', function(eventObject) {
-        if (eventObject.keyCode !== 13) { return; }
+    // If a valid cell reference is present in the nameBox, makeActiveCell() is invoked for the referenced cell.
+    // If the nameBox content isn't a valid cell reference, an error message is displayed in the messageBar.
+    var selectNameBoxCell = function() {
         var result = grid.findCellObject(nameBox.value);
         if (typeof result === "object") {
             result.makeActiveCell();
         } else {
             setMessage(result);
         }
-    }, false)
+    };
+
+    // This won't be detected while the arrowKeySelect() event handler is attached to the 'Enter' key, so the name box
+    // button is also needed.
+    nameBox.addEventListener('keypress', function(eventObject) {
+        if (eventObject.keyCode !== 13) { return; }
+        selectNameBoxCell();
+    }, false);
+
+    nameBoxButton.addEventListener('click', selectNameBoxCell, false);
 
     // Add button handlers.
     destroyRowButton.addEventListener('click', function() { grid.destroyRow(activeCell); }, false);
