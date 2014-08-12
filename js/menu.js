@@ -27,6 +27,29 @@ var menu = (function() {
     // Needed for enabling and disabling buttons as a group.
     var allButtons = [destroyRowButton, destroyColButton, createRowButton, createColButton, submitFunctionButton];
 
+    // Keyboard navigation using 'Enter' key.
+    document.addEventListener('keydown', function(evt) {
+        if (!activeCell) { return; }
+        //evt.preventDefault();
+        switch (evt.keyCode) {
+            case 13:
+                grid.findCellBelow(activeCell).makeActiveCell();
+                break;
+            case 37:
+                grid.findCellLeft(activeCell).makeActiveCell();
+                break;
+            case 38:
+                grid.findCellAbove(activeCell).makeActiveCell();
+                break;
+            case 39:
+                grid.findCellRight(activeCell).makeActiveCell();
+                break;
+            case 40:
+                grid.findCellBelow(activeCell).makeActiveCell();
+                break;
+        }
+    }, false);
+
     // Set a new message in the messageBar. If no message is passed (eg empty string), messageBar is reset.
     var setMessage = function(message) {
         if (message) {
@@ -80,6 +103,9 @@ var menu = (function() {
         activeCell.setInputValue('=' + selectFunctionName.value + '(' + firstRangeCell.value + ':' + secondRangeCell.value + ')');
         firstRangeCell.value = null;
         secondRangeCell.value = null;
+        // If 'Enter' is pressed with the findCellBelow() handler, and the submitFunctionButton is also focused, this
+        // causes a problem. Focus one of the range cells so that the button is not left as focused after the invokation.
+        secondRangeCell.focus();
     }, false);
 
     return {

@@ -286,6 +286,39 @@ var grid = (function() {
         return (index !== -1) ? (computeColReference(index.col) + index.row) : index;
     };
 
+    // Returns the cell object below the argument cell object.
+    var findCellBelow = function(el) {
+        console.log('findCellBelow() invoked');
+        var index = findCellIndex(el);
+        // Return the argument cell if there is no cell below.
+        if (index.row+1 === gridArray.length) { return el; }
+        return gridArray[index.row+1][index.col];
+    };
+
+    var findCellAbove = function(el) {
+        console.log('findCellAbove() invoked');
+        var index = findCellIndex(el);
+        // Return the argument cell if there is no cell below.
+        if (index.row-1 === 0) { return el; }
+        return gridArray[index.row-1][index.col];
+    };
+
+    var findCellLeft = function(el) {
+        console.log('findCellLeft() invoked');
+        var index = findCellIndex(el);
+        // Return the argument cell if there is no cell below.
+        if (index.col-1 === 0) { return el; }
+        return gridArray[index.row][index.col-1];
+    };
+
+    var findCellRight = function(el) {
+        console.log('findCellRight() invoked');
+        var index = findCellIndex(el);
+        // Return the argument cell if there is no cell below.
+        if (index.col+1 === gridArray[0].length) { return el; }
+        return gridArray[index.row][index.col+1];
+    };
+
     // Takes a formula function string as an argument, eg "SUM(B15, A1)", and returns an object.
     // The other argument is the cellObject that invoked the method, so it can be checked as not present in the range.
     // If function valid, returns the result and an array of the range cells, {value: 5, rangeCells: [{A1}, {A2}, etc]}.
@@ -414,6 +447,10 @@ var grid = (function() {
         createNewRow: createNewRow,
         createNewColumn: createNewColumn,
         highlightHeadings: highlightHeadings,
+        findCellBelow: findCellBelow,
+        findCellAbove: findCellAbove,
+        findCellLeft: findCellLeft,
+        findCellRight: findCellRight,
     };
 
 }());

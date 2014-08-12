@@ -1,5 +1,4 @@
-// Utility DOM methods.
-// Written by P Cope.
+// Utility DOM methods. Written by P Cope.
 var domUtils = {
 
     // Appends a child element to a parent element at a given index.
@@ -18,6 +17,7 @@ var domUtils = {
 
     // Returns a child element of a given type, that is the nth child using a zero-based index.
     // The child element type is the HTML element's string name, eg 'td', 'div'.
+    // (This is an older version that actually returns a matching descendant, not child, element.)
     getNthChildOfType: function(parentEl, childElType, index) {
         return parentEl.querySelector( childElType + ':nth-of-type(' + (index+1) +')' );
     },
