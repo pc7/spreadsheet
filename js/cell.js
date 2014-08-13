@@ -101,7 +101,6 @@ var createCell = function(trObject, index) {
 
     // Renders the value displayed in the cell's input box.
     var renderValue = function() {
-        //console.log('renderValue() invoked');
         // If the cell is the active cell and has a formula value, render the formula value.
         // Else, render the computed value.
         if ( (tdObject.getAttribute('id') === 'activeCell') && formulaString) {
@@ -157,16 +156,13 @@ var createCell = function(trObject, index) {
                     // The cellsDependentOnThisCells array will be changed during the dependent cells changing in value,
                     // so we need to work with a copy of the original that won't be changed during the loop.
                     cellsDependentOnThisCell.slice(0).forEach( function(el) { el.generateComputedValue(); } );
-                    //console.log( grid.computeCellReference(cellObject) + ' computedValue set to: ' + computedValue );
                 } else {
-                    //console.log( grid.computeCellReference(cellObject) + ' computedValue unchanged from existing value, ' + computedValue );
                 }
             },
             // Get the computedValue without re-evaluating the formula, when referenced cells in formula haven't changed.
             get: function() { return computedValue; },
             // Calculate the computedValue when user input is a formula, or when a cell referenced in formula is changed.
             generate: function() {
-                //console.log( 'generateComputedValue() invoked for cell ' + grid.computeCellReference(cellObject) );
                 // If the cell has a formula value, generate the computedValue using the formulaStringTemplate.
                 if (formulaString) {
                     evaluateFormulaTemplate();
@@ -203,13 +199,11 @@ var createCell = function(trObject, index) {
 
     // Adds a new cell object as a dependent cell.
     var addDependentCell = function(cellObj) {
-        //console.log(grid.computeCellReference(cellObj) + ' is now dependent on ' + grid.computeCellReference(cellObject))
         cellsDependentOnThisCell.push(cellObj);
     };
 
     // Remove one reference to a dependent cell object. Other references to the same cell will remain.
     var removeDependentCell = function(cellObj) {
-        //console.log(grid.computeCellReference(cellObj) + ' is no longer dependent on ' + grid.computeCellReference(cellObject))
         cellsDependentOnThisCell.splice( cellsDependentOnThisCell.indexOf(cellObj), 1 );
     };
 
@@ -276,9 +270,6 @@ var createCell = function(trObject, index) {
         }
     };
 
-    // source of firefox bug, delete this statement.
-    //inputEl.addEventListener('change', function() { handleRawInput(inputEl.value); console.log('change event fired, value: ' + String(inputEl.value)) }, false);
-
     // The handleRawInput() function has shown that the user intends their input to be a formula.
     // The processFormulaSyntax() function checks formula syntax.
     // If the formula has valid syntax, processing will continue later to check for circular references etc.
@@ -291,12 +282,10 @@ var createCell = function(trObject, index) {
         formulaString = formulaString.replace(/\s/g, '');
 
         // formulaString is now "=A5+5+SUM(B1:B3)".
-        // Problem in that whitespace within cell references isn't seen as an error, eg "b 3" becomes "B3".
+        // Problem that whitespace within cell references isn't seen as an error, eg "b 3" becomes "B3".
 
         // Now remove the first '=' sign and validate formula syntax.
         var tempFormulaString = formulaString.replace(/\=/, '');
-
-        //console.log('tempFormulaString is now: ' + tempFormulaString);
 
         // Validate formulaString as having valid syntax. 'valid' variable will be empty string if formula is valid.
         // Formula should be:
@@ -317,12 +306,9 @@ var createCell = function(trObject, index) {
             } else {
                 message = "Formula contains incorrect syntax. See the 'instructions' tab for limitations.";
             }
-            //console.log('invalid formula syntax.');
             invalidFormula(rawInput, message);
             return;
         }
-
-        //console.log('formula is valid');
 
         // Continue processing formula input by creating the formulaStringTemplate.
         createFormulaStringTemplate();
@@ -342,12 +328,9 @@ var createCell = function(trObject, index) {
         // tempFormulaString for "A5+5+SUM(B1:B3)" will be "#+5+SUM(#:#)" and cellReferences will be ["A5", "B1", "B3"].
         var cellReferences = [];
         while (tempFormulaString.match(/[A-Z]+\d+/)) {
-            //console.log('reference string identified and replaced: ' + formulaString.match(/[A-Z]+[0-9]+/)[0]);
             cellReferences.push(tempFormulaString.match(/[A-Z]+\d+/)[0]);
             tempFormulaString = tempFormulaString.replace(/[A-Z]+\d+/, '#');
         }
-
-        //console.log('tempFormulaString: '+tempFormulaString);
 
         // Replace the string references with cell objects.
         // So ["A5", "B1", "B3"] becomes [{cellObject}, {cellObject}, {cellObject}].
@@ -362,33 +345,25 @@ var createCell = function(trObject, index) {
             }
         }
 
-        //console.log('cellReferences: '+cellReferences, 'length: ' + cellReferences.length);
-
         // Replace the '#' elements, so formulaStringTemplate ia [{cellObject}, "+", "5", "+", "S", "U", "M" ... etc].
         formulaStringTemplate = tempFormulaString.split('');
-        //console.log('formulaStringTemplate: '+formulaStringTemplate);
         for (var i = 0; i < formulaStringTemplate.length; i++) {
             if (formulaStringTemplate[i] === '#') {
                 formulaStringTemplate[i] = cellReferences.shift();
             }
         }
 
-        //console.log('formulaStringTemplate: '+formulaStringTemplate);
-
         // Merge the string elements within the formulaStringTemplate, creating its final form:
         // [{cellObject}, "+5+SUM(", {cellObject}, ":", {cellObject}, ")"]
         var i = 0;
         while (formulaStringTemplate[i]) {
             if ((typeof formulaStringTemplate[i] === "string") && (typeof formulaStringTemplate[i+1] === "string")) {
-                //console.log('elements merged');
                 formulaStringTemplate[i] = formulaStringTemplate[i] + formulaStringTemplate[i+1];
                 formulaStringTemplate.splice(i+1, 1);
                 i--;
             }
             i++;
         }
-
-        //console.log('formulaStringTemplate: '+formulaStringTemplate);
 
         evaluateFormulaTemplate();
 
@@ -420,16 +395,10 @@ var createCell = function(trObject, index) {
         // Loop through formulaStringTemplate.
         for (var i = 0, len = formulaStringTemplate.length; i < len; i++) {
 
-            //console.log( 'Element ' + i + ' in formulaStringTemplate processing, value: ' + formulaStringTemplate[i] );
-
             // Only dealing with the cell objects in the formulaStringTemplate, not the strings.
             if (typeof formulaStringTemplate[i] === "object") {
 
-                //console.log('... element is a cell object');
-
                 var notValid = cellObject.isReferenceNotValid(formulaStringTemplate[i])
-
-                //console.log( '... is cell object NOT valid to use in a formula in "this" cell: ' + notValid );
 
                 // If the cell object is not valid for use in a formula in 'this' cell...
                 if (notValid) {
@@ -442,17 +411,14 @@ var createCell = function(trObject, index) {
                 } else {
                     // Add the string cell reference of a valid cell to the formulaString, eg "A5".
                     formulaString += grid.computeCellReference(formulaStringTemplate[i]);
-                    //console.log( '... ... formulaString is now: ' + formulaString );
                     // If cells are not part of a range (these will be dealt with later)...
                     if ((formulaStringTemplate[i-1] !== ":") && (formulaStringTemplate[i+1] !== ":")) {
-                        //console.log('... ... cell is not part of a range.');
                         tempCellsReferencedInFormula.push(formulaStringTemplate[i]);
                         // Replace 'null' cell values with zero in the evalString.
                         var value = formulaStringTemplate[i].getComputedValue();
                         evalString += (value === null) ? 0 : value;
                     } else {
                         // Cell is part of a range.
-                        //console.log('... ... cell is part of a range.');
                         evalString += grid.computeCellReference(formulaStringTemplate[i]);
                     }
                 }
@@ -465,7 +431,6 @@ var createCell = function(trObject, index) {
         }
 
         formulaString = "=" + formulaString;
-        //console.log( 'Non-function elements have been processed. formulaString is now completed: ' + formulaString );
 
         // The formulaString should now be completed, eg "=A5+5+SUM(B1:B3)" or "=A5+5+SUM(#REF!:B3).
         // The evalString should have non-function cells replaced with their values, eg "5+5+SUM(B1:B3)".
@@ -473,28 +438,22 @@ var createCell = function(trObject, index) {
 
         // If any cell references weren't valid for use in the formula, stop processing. 
         if (containsInvalidCell) {
-            //console.log( 'formula contains invalid cell, so stop processing.' );
             invalidFormula(formulaString, containsInvalidCell);
             return;
         }
 
         // Replace all functions with their evaluated value, eg "SUM(A1:B1)+1" becomes "5+1".
         var functionRegex = /(SUM|MEAN|MAX|MIN)\([A-Z]+\d+\:[A-Z]+\d+\)/;
-        //console.log( 'evalString is now: ' + evalString ) 
-        //console.log( 'function regex matched: ' + functionRegex.test(evalString) ) 
         // While the evalString contains functions...
         while ( functionRegex.test(evalString) ) {
             var computedFunctionResult = grid.computeFormulaFunction( cellObject, evalString.match(functionRegex)[0] );
-            //console.log('computedFunctionResult: ' + computedFunctionResult);
             // If the function was valid, computedFunctionResult will be {value: x, rangeCells: []}.
             // If not, computedFunctionResult will be {message: "error message"}.
             if ( "value" in computedFunctionResult ) {
                 // If the grid method returns a number result, replace the function in the evalString with that number.
                 evalString = evalString.replace(functionRegex, computedFunctionResult.value);
-                //console.log('evalString function replaced, evalString is now: ' + evalString);
                 // Add all the cells in the range to the temp referenced cells array.
                 tempCellsReferencedInFormula = tempCellsReferencedInFormula.concat(computedFunctionResult.rangeCells);
-                //console.log('tempCellsReferencedInFormula is now: ' + tempCellsReferencedInFormula);
             } else {
                 // If error message returned, then function (and therefore whole formula) is not valid.
                 return invalidFormula(formulaString, computedFunctionResult.message);
@@ -502,8 +461,6 @@ var createCell = function(trObject, index) {
         }
 
         // Formulas that reach this point have valid syntax and valid cell references.
-        //console.log('formula has valid syntax and valid references.');
-        //console.log('evalString is now: ' + evalString);
 
         // Remove values from previous formula value.
         removeFormulaValues();
@@ -514,15 +471,12 @@ var createCell = function(trObject, index) {
 
         // If the formula consists of only one cell reference, eg "=A5", then that cell can have a string value.
         if ((typeof formulaStringTemplate[0] === "object") && (formulaStringTemplate.length === 1)) {
-            //console.log( 'formulaStringTemplate contains only one value. Return the value: ' + evalString ) 
             computedValue.set( evalString );
             return;
         }
  
 
 
-
-        //console.log( 'evalString matched: ' + !!evalString.match(/^\-?\d+(\.\d+)?([\+\-\*\/](\-?\d+(\.\d+)?))*$/) )
 
         // Check if the evalString is in the format [one or more digits] with zero or more ([digits][operator]).
         // If so, then the evalString is correct, ie in the format "5+5", "8*9*10", "3", "20*250" etc.
@@ -546,7 +500,6 @@ var createCell = function(trObject, index) {
     // Cell objects in the formulaStringTemplate are replaced by their computed values.
     // ["5+", {cellObject}, "-7"] will be turned into "=5+B2-7".
     var generateFormulaString = function() {
-        //console.log('generateFormulaString invoked')
         // > create a tempString instead.
         var tempArray = [];
         for (var i = 0, len = formulaStringTemplate.length; i < len; i++) {

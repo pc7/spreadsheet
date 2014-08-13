@@ -288,7 +288,6 @@ var grid = (function() {
 
     // Returns the cell object below the argument cell object.
     var findCellBelow = function(el) {
-        console.log('findCellBelow() invoked');
         var index = findCellIndex(el);
         // Return the argument cell if there is no cell below.
         if (index.row+1 === gridArray.length) { return el; }
@@ -296,7 +295,6 @@ var grid = (function() {
     };
 
     var findCellAbove = function(el) {
-        console.log('findCellAbove() invoked');
         var index = findCellIndex(el);
         // Return the argument cell if there is no cell below.
         if (index.row-1 === 0) { return el; }
@@ -304,7 +302,6 @@ var grid = (function() {
     };
 
     var findCellLeft = function(el) {
-        console.log('findCellLeft() invoked');
         var index = findCellIndex(el);
         // Return the argument cell if there is no cell below.
         if (index.col-1 === 0) { return el; }
@@ -312,7 +309,6 @@ var grid = (function() {
     };
 
     var findCellRight = function(el) {
-        console.log('findCellRight() invoked');
         var index = findCellIndex(el);
         // Return the argument cell if there is no cell below.
         if (index.col+1 === gridArray[0].length) { return el; }
@@ -325,38 +321,27 @@ var grid = (function() {
     // If function is not valid, returns an error message string, {message: ""}.
     // The function string should already have been vetted as having valid syntax, and the delimiter cells as existing.
     var computeFormulaFunction = function(cellObject, funcString) {
-        //console.log('grid.computeFormulaFunction invoked, arg: ' + funcString);
 
         // Get the function type, and remove it from the argument string, leaving "(B15:A1)".
         var funcNames = /(SUM|MEAN|MAX|MIN)/,
             funcName = funcString.match(funcNames)[0],
             funcString = funcString.replace(funcNames, '');
 
-        //console.log('... funcName is: ' + funcName + ', funcString is now: ' + funcString);
-
         // Find the top left and bottom right coordinates in the range (the given cells could be the opposites).
         // This creates two arrays giving the index coordinates, eg rows [15, 1] and cols [2, 1].
         var rows = funcString.match(/\d+/g),
             cols = funcString.match(/[A-Z]+/g).map( function(el) { return computeColIndex(el) } );
-
-        //console.log('... range index rows: ' + rows + ' cols: ' + cols );
 
         // Order the rows and cols, leaving rows [1, 15] and cols [1, 2].
         var sortInOrder = function(firstEl, secondEl) { return firstEl - secondEl };
         rows.sort(sortInOrder);
         cols.sort(sortInOrder);
 
-        //console.log('... range index rows: ' + rows + ' cols: ' + cols + ', rows length: '+ rows.length + 'colsLength: ' + cols.length);
-        //console.log('... rows[0]: ' + rows[0] + ' rows[1]: ' + rows[1] + ' cols[0]: ' + cols[0] + ' cols[1]: ' + cols[1]);
-        //console.log('... typeof rows[0]: ' + typeof rows[0] + ' rows[1]: ' + typeof rows[1] + ' cols[0]: ' + typeof cols[0] + ' cols[1]: ' + typeof cols[1]);
-
         // Add all the cell objects in the range to the cellsInRange array, creating [{A1}, {A2}, {A3} ...etc].
         var cellsInRange = [];
         for (var i = Number(rows[0]), len = Number(rows[1]); i <= len; i++) {
             for (var j = cols[0], l = cols[1]; j <= l; j++) {
-                //console.log('... i: ' + i + ' j: ' + j + ' cell: ' + gridArray[i][j]);
                 cellsInRange.push(gridArray[i][j]);
-                //console.log('... cell ' + grid.computeCellReference(cellsInRange[cellsInRange.length-1]) + ' added to cellsInRange array.');
             }
         }
 
@@ -383,13 +368,10 @@ var grid = (function() {
             };
         }
 
-        //console.log('valuesInRange: ' + valuesInRange);
-
         // Return the value of the function, and the cells within the range (that the calling cell is now dependent on).
         switch (funcName) {
 
             case "SUM":
-                //console.log('SUM matched in switch statement');
                 return {
                     value: valuesInRange.reduce( function(total, el) { return total + el } ),
                     rangeCells: cellsInRange,
