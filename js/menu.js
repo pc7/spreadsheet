@@ -1,5 +1,5 @@
 /*
- * Written by P Cope.
+ * Copyright (c) P Cope 2014.
  * Contains DOM menu controls, and handles the active cell.
  */
 

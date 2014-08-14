@@ -1,5 +1,5 @@
 /*
- * Written by P Cope.
+ * Copyright (c) P Cope 2014.
  * Grid is a two-dimensional array containing cell objects.
  * Parallel to this is a DOM table object, with each cell having an associated td object.
  */
@@ -7,7 +7,6 @@
 var grid = (function() {
 
     "use strict";
-
 
     // >> Grid generation, and finding column references from the column index.
 
@@ -215,6 +214,22 @@ var grid = (function() {
         writeColHeadings(colIndex);
     };
 
+    // Removes and returns a gridArray and DOM row from the given index. Returns {rowArray: [], trObject: {DOM object}}.
+    // Row is not destroyed.
+    var removeRow = function(rowIndex) {
+        return {
+            rowArray: gridArray.splice(rowIndex, 1)[0],
+            trObject: tableEl.removeChild( domUtils.getNthChildOfType(tableEl, 'tr', rowIndex) ),
+        };
+    };
+
+    // Takes an object containing a row array and tr object as an argument. {rowArray: [], trObject: {DOM object}}.
+    // The row is appended to the gridArray and to the DOM, at the specified index.
+    var appendRow = function(row, appendIndex) {
+        gridArray.splice(appendIndex, 0, row.rowArray);
+        domUtils.appendAtIndex(tableEl, row.trObject, appendIndex);
+    };
+
     // Setup for the implementSort() function. Returns an error message if sort cannot happen.
     var sortRows = function(colReference, startRowIndex, endRowIndex, isDescending) {
 
@@ -232,9 +247,51 @@ var grid = (function() {
         // Select function to sort ascending or descending.
         var comparisonFunc = isDescending ? function(a, b) { return a > b; } : function(a, b) { return a < b; };
 
-        implementSort(colIndex, startRowIndex, endRowIndex, comparisonFunc);
+        // Returns true if the rows within the range contain a number value, false if not (only null and strings).
+        var rowsContainNumberValue = function(firstRowIndex, lastRowIndex) {
+            for (var i = firstRowIndex; i <= lastRowIndex; i++) {
+                if ( gridArray[i][colIndex].hasNumberValue() ) {
+                    return true;
+                }
+            }
+            return false;
+        };
 
-        writeRowHeadings(startRowIndex, endRowIndex);
+        // Number of numbered cells in the sort area, ie cells that are not null or non-number strings.
+        var numberOfNumberCells = (function() {
+            var num = 0;
+            for (var i = startRowIndex; i <= endRowIndex; i++) {
+                if ( gridArray[i][colIndex].hasNumberValue() ) {
+                    num++;
+                }
+            }
+            return num;
+        })();
+
+        console.log('numberOfNumberCells: '+numberOfNumberCells);
+
+        // Create a new sort area containing only the rows whose cells contain number values.
+        // The non-number values are sent to the bottom of the original sort area, and not included in the later sorting.
+        for (var currentRowIndex = startRowIndex; currentRowIndex <= endRowIndex; currentRowIndex++) {
+
+            // If the row has a non-number value, move it to the bottom of the sort area.
+            if ( !gridArray[currentRowIndex][colIndex].hasNumberValue() ) {
+
+                // Remove the non-number row from the gridArray and DOM, and append to the end of the sort area.
+                appendRow( removeRow(currentRowIndex), endRowIndex );
+
+                // If the row that replaces the removed one itself has a non-number value, but there is a later row that
+                // does contain a number value, then repeat the loop for the replacement row.
+                if( !gridArray[currentRowIndex][colIndex].hasNumberValue() && rowsContainNumberValue(currentRowIndex, endRowIndex) ) {
+                    currentRowIndex--;
+                };
+
+            }
+        }
+
+        implementSort(colIndex, startRowIndex, startRowIndex + numberOfNumberCells-1, comparisonFunc);
+
+        //writeRowHeadings(startRowIndex, endRowIndex);
 
     };
 
@@ -257,30 +314,18 @@ var grid = (function() {
             // The current row's value in its column by which the rows are sorted.
             var currentCell = gridArray[currentIndex][colIndex];
 
-            console.log('...loop iteration at cell '+computeCellReference(currentCell)+', value of currently iterated cell: '+currentCell.getComputedValue());
-
             // If the currently iterated row has a higher value than the target row, make it the new target row.
             // When the loop has finished, the target row will be the one with the highest value in that column.
             // Number() invokation is needed to turn negative number strings into numbers.
             if ( comparisonFunc( Number(currentCell.getComputedValue()), Number(gridArray[targetRowIndex][colIndex].getComputedValue() ) ) ) {
                 targetRowIndex = currentIndex;
-                console.log('... ...targetRowIndex reassigned, index is now '+targetRowIndex);
             }
             currentIndex++;
         }
 
-        console.log('...loop finished, index of target row with highest value in unsorted area is: '+targetRowIndex+', its value is: '+gridArray[targetRowIndex][colIndex].getComputedValue());
-
-        console.log('gridArray number of rows: '+gridArray.length)
-
         // Remove the target row from the gridArray and DOM.
-        var rowArray = gridArray.splice(targetRowIndex, 1)[0],
-            trObject = tableEl.removeChild( domUtils.getNthChildOfType(tableEl, 'tr', targetRowIndex) );
-
         // Reappend the target row to the gridArray and DOM as the first row in the unsorted area.
-        gridArray.splice(startRowIndex, 0, rowArray);
-        domUtils.appendAtIndex(tableEl, trObject, startRowIndex);
-        console.log('gridArray number of rows: '+gridArray.length)
+        appendRow( removeRow(targetRowIndex), startRowIndex );
 
         // Recursive call, with the unsorted area decreased by one row.
         implementSort(colIndex, startRowIndex+1, endRowIndex, comparisonFunc);

@@ -1,5 +1,5 @@
 /*
- * Written by P Cope.
+ * Copyright (c) P Cope 2014.
  * Generates and returns a cell object, and an associated DOM td object. The DOM object is appended to the argument tr object at the given index.
  */
 
@@ -161,6 +161,8 @@ var createCell = function(trObject, index) {
             },
             // Get the computedValue without re-evaluating the formula, when referenced cells in formula haven't changed.
             get: function() { return computedValue; },
+            // Returns true if computedValue is an explicit number, false if it is null or a non-number string.
+            isNumber: function() { return (computedValue !== null) && !isNaN( Number(computedValue) ) },
             // Calculate the computedValue when user input is a formula, or when a cell referenced in formula is changed.
             generate: function() {
                 // If the cell has a formula value, generate the computedValue using the formulaStringTemplate.
@@ -544,6 +546,7 @@ var createCell = function(trObject, index) {
     cellObject.isDependentOn = isDependentOn;
     cellObject.getComputedValue = computedValue.get;
     cellObject.generateComputedValue = computedValue.generate;
+    cellObject.hasNumberValue = computedValue.isNumber;
     cellObject.isReferenceNotValid = isReferenceNotValid;
     cellObject.destroy = destroy;
     cellObject.nudgeDependentCells = nudgeDependentCells;
