@@ -237,6 +237,7 @@ var grid = (function() {
         startRowIndex = Number(startRowIndex);
         endRowIndex = Number(endRowIndex);
 
+        // Return an error message if the row or column doesn't exist.
         if (!gridArray[0][colIndex]) { return "Column " + colReference + " does not exist."; }
         if (!gridArray[startRowIndex] || (startRowIndex === 0)) { return "Row " + startRowIndex + " does not exist."; }
         if (!gridArray[endRowIndex] || (endRowIndex === 0)) { return "Row " + endRowIndex + " does not exist."; }
@@ -268,30 +269,22 @@ var grid = (function() {
             return num;
         })();
 
-        console.log('numberOfNumberCells: '+numberOfNumberCells);
-
         // Create a new sort area containing only the rows whose cells contain number values.
-        // The non-number values are sent to the bottom of the original sort area, and not included in the later sorting.
+        // The non-number values sink to the bottom of the original sort area, and not included in the later sorting.
+        // Loop through all rows in the sort area...
         for (var currentRowIndex = startRowIndex; currentRowIndex <= endRowIndex; currentRowIndex++) {
 
-            // If the row has a non-number value, move it to the bottom of the sort area.
-            if ( !gridArray[currentRowIndex][colIndex].hasNumberValue() ) {
-
-                // Remove the non-number row from the gridArray and DOM, and append to the end of the sort area.
-                appendRow( removeRow(currentRowIndex), endRowIndex );
-
-                // If the row that replaces the removed one itself has a non-number value, but there is a later row that
-                // does contain a number value, then repeat the loop for the replacement row.
-                if( !gridArray[currentRowIndex][colIndex].hasNumberValue() && rowsContainNumberValue(currentRowIndex, endRowIndex) ) {
-                    currentRowIndex--;
-                };
-
+            // If the row has a number value, move it to the top of the sort area.
+            if ( gridArray[currentRowIndex][colIndex].hasNumberValue() ) {
+                // Remove the number row from the gridArray and DOM, and append to the start of the sort area.
+                appendRow( removeRow(currentRowIndex), startRowIndex );
             }
         }
 
-        implementSort(colIndex, startRowIndex, startRowIndex + numberOfNumberCells-1, comparisonFunc);
+        // Invoke implementSort() with the new sort area, containing only number values.
+        implementSort(colIndex, startRowIndex, (startRowIndex + numberOfNumberCells-1), comparisonFunc);
 
-        //writeRowHeadings(startRowIndex, endRowIndex);
+        writeRowHeadings(startRowIndex, endRowIndex);
 
     };
 
@@ -299,8 +292,6 @@ var grid = (function() {
     // The startRowIndex and endRowIndex indexes are the lowest and highest row indexes in the current unsorted area.
     // Recursive function. Empty cells are always placed last, in both ascending and descending sorts.
     var implementSort = function(colIndex, startRowIndex, endRowIndex, comparisonFunc) {
-
-        console.log('implementSort() invoked, col: '+colIndex+' startRow: '+startRowIndex+' endRow: '+endRowIndex+ ' comparisonFunc: '+comparisonFunc);
 
         // Base case, which is reached when the unsorted area is down to just one row.
         if (startRowIndex >= endRowIndex) { return; }
