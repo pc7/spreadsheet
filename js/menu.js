@@ -24,6 +24,11 @@ var menu = (function() {
         selectFunctionName = document.querySelector('#setFunctionFormulaContent select'),
         firstRangeCell = document.querySelector('#setFunctionFormulaContent input:first-of-type'),
         secondRangeCell = document.querySelector('#setFunctionFormulaContent input:last-of-type'),
+        sortStartRow = document.querySelector('#sortRows input:nth-of-type(1)'),
+        sortEndRow = document.querySelector('#sortRows input:nth-of-type(2)'),
+        sortCol = document.querySelector('#sortRows input:nth-of-type(3)'),
+        sortAscendingButton = document.querySelector('#sortRows button:first-of-type'),
+        sortDescendingButton = document.querySelector('#sortRows button:last-of-type'),
         arrowKeySelect = document.getElementsByName('arrowKeys')[0],
         arrowKeyUnselect = document.getElementsByName('arrowKeys')[1];
 
@@ -131,6 +136,24 @@ var menu = (function() {
         // causes a problem. Focus one of the range cells so that the button is not left as focused after the invokation.
         secondRangeCell.focus();
     }, false);
+
+    sortAscendingButton.addEventListener('click', function() { invokeSort(); }, false);
+    sortDescendingButton.addEventListener('click', function() { invokeSort(true); }, false);
+
+    var invokeSort = function(isDescending) {
+        // Active cell's value must be submitted before sort begins.
+        if (activeCell) { activeCell.removeActiveCellStatus(); }
+        console.log('invokeSort() invoked, isDescending: '+ isDescending);
+        var sortReturnValue = grid.sortRows(sortCol.value, sortStartRow.value, sortEndRow.value, isDescending);
+        console.log('sort return value: '+sortReturnValue);
+        // Error message will be returned if sort is unsuccessful.
+        if (sortReturnValue) {
+            setMessage(sortReturnValue);
+        } else {
+            // Reset message, so that a previous error message doesn't remain.
+            setMessage();
+        }
+    };
 
     return {
         newActiveCell: newActiveCell,

@@ -102,9 +102,11 @@ var grid = (function() {
     };
 
     // Generates and writes the row heading references. Invoking without an argument will write all row headings.
-    var writeRowHeadings = function(currentRow) {
+    // Arguments are the first and last row indexes to have their headings rewritten.
+    var writeRowHeadings = function(currentRow, limit) {
         if (!currentRow) {currentRow = 1;}
-        for (var cols = gridArray.length; currentRow < cols; currentRow++) {
+        if (!limit) {limit = gridArray.length-1;}
+        for (; currentRow <= limit; currentRow++) {
             gridArray[currentRow][0].setHeadingValue(currentRow);
         }
     };
@@ -211,6 +213,78 @@ var grid = (function() {
         removedCells.forEach( function(el) {el.destroy()} );
 
         writeColHeadings(colIndex);
+    };
+
+    // Setup for the implementSort() function. Returns an error message if sort cannot happen.
+    var sortRows = function(colReference, startRowIndex, endRowIndex, isDescending) {
+
+        var colIndex = computeColIndex(colReference.toUpperCase());
+        startRowIndex = Number(startRowIndex);
+        endRowIndex = Number(endRowIndex);
+
+        if (!gridArray[0][colIndex]) { return "Column " + colReference + " does not exist."; }
+        if (!gridArray[startRowIndex] || (startRowIndex === 0)) { return "Row " + startRowIndex + " does not exist."; }
+        if (!gridArray[endRowIndex] || (endRowIndex === 0)) { return "Row " + endRowIndex + " does not exist."; }
+
+        // Swap row index values if they are the wrong way around.
+        if (endRowIndex < startRowIndex) { var temp = startRowIndex; startRowIndex = endRowIndex; endRowIndex = temp; }
+
+        // Select function to sort ascending or descending.
+        var comparisonFunc = isDescending ? function(a, b) { return a > b; } : function(a, b) { return a < b; };
+
+        implementSort(colIndex, startRowIndex, endRowIndex, comparisonFunc);
+
+        writeRowHeadings(startRowIndex, endRowIndex);
+
+    };
+
+    // Sort rows by the values in the column index, using insertion sort. Column index is a zero-based number.
+    // The startRowIndex and endRowIndex indexes are the lowest and highest row indexes in the current unsorted area.
+    // Recursive function. Empty cells are always placed last, in both ascending and descending sorts.
+    var implementSort = function(colIndex, startRowIndex, endRowIndex, comparisonFunc) {
+
+        console.log('implementSort() invoked, col: '+colIndex+' startRow: '+startRowIndex+' endRow: '+endRowIndex+ ' comparisonFunc: '+comparisonFunc);
+
+        // Base case, which is reached when the unsorted area is down to just one row.
+        if (startRowIndex >= endRowIndex) { return; }
+
+        // Find the target row, with the highest value in the sorted area.
+        // This row will be deappended and re-inserted in its sorted position.
+        var targetRowIndex = startRowIndex,
+            currentIndex = startRowIndex;
+
+        while (currentIndex <= endRowIndex) {
+            // The current row's value in its column by which the rows are sorted.
+            var currentCell = gridArray[currentIndex][colIndex];
+
+            console.log('...loop iteration at cell '+computeCellReference(currentCell)+', value of currently iterated cell: '+currentCell.getComputedValue());
+
+            // If the currently iterated row has a higher value than the target row, make it the new target row.
+            // When the loop has finished, the target row will be the one with the highest value in that column.
+            // Number() invokation is needed to turn negative number strings into numbers.
+            if ( comparisonFunc( Number(currentCell.getComputedValue()), Number(gridArray[targetRowIndex][colIndex].getComputedValue() ) ) ) {
+                targetRowIndex = currentIndex;
+                console.log('... ...targetRowIndex reassigned, index is now '+targetRowIndex);
+            }
+            currentIndex++;
+        }
+
+        console.log('...loop finished, index of target row with highest value in unsorted area is: '+targetRowIndex+', its value is: '+gridArray[targetRowIndex][colIndex].getComputedValue());
+
+        console.log('gridArray number of rows: '+gridArray.length)
+
+        // Remove the target row from the gridArray and DOM.
+        var rowArray = gridArray.splice(targetRowIndex, 1)[0],
+            trObject = tableEl.removeChild( domUtils.getNthChildOfType(tableEl, 'tr', targetRowIndex) );
+
+        // Reappend the target row to the gridArray and DOM as the first row in the unsorted area.
+        gridArray.splice(startRowIndex, 0, rowArray);
+        domUtils.appendAtIndex(tableEl, trObject, startRowIndex);
+        console.log('gridArray number of rows: '+gridArray.length)
+
+        // Recursive call, with the unsorted area decreased by one row.
+        implementSort(colIndex, startRowIndex+1, endRowIndex, comparisonFunc);
+
     };
 
     // >> End cell creation, deletion and sorting functions.
@@ -428,6 +502,7 @@ var grid = (function() {
         destroyColumn: destroyColumn,
         createNewRow: createNewRow,
         createNewColumn: createNewColumn,
+        sortRows: sortRows,
         highlightHeadings: highlightHeadings,
         findCellBelow: findCellBelow,
         findCellAbove: findCellAbove,
