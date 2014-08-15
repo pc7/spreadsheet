@@ -143,9 +143,7 @@ var menu = (function() {
     var invokeSort = function(isDescending) {
         // Active cell's value must be submitted before sort begins.
         if (activeCell) { activeCell.removeActiveCellStatus(); }
-        console.log('invokeSort() invoked, isDescending: '+ isDescending);
         var sortReturnValue = grid.sortRows(sortCol.value, sortStartRow.value, sortEndRow.value, isDescending);
-        console.log('sort return value: '+sortReturnValue);
         // Error message will be returned if sort is unsuccessful.
         if (sortReturnValue) {
             setMessage(sortReturnValue);

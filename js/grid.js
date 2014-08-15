@@ -238,36 +238,18 @@ var grid = (function() {
         endRowIndex = Number(endRowIndex);
 
         // Return an error message if the row or column doesn't exist.
-        if (!gridArray[0][colIndex]) { return "Column " + colReference + " does not exist."; }
+        if (!gridArray[0][colIndex] || (colIndex === 0)) { return "Column " + colReference + " does not exist."; }
         if (!gridArray[startRowIndex] || (startRowIndex === 0)) { return "Row " + startRowIndex + " does not exist."; }
         if (!gridArray[endRowIndex] || (endRowIndex === 0)) { return "Row " + endRowIndex + " does not exist."; }
 
         // Swap row index values if they are the wrong way around.
         if (endRowIndex < startRowIndex) { var temp = startRowIndex; startRowIndex = endRowIndex; endRowIndex = temp; }
 
-        // Select function to sort ascending or descending.
+        // Select the lambda function to sort ascending or descending.
         var comparisonFunc = isDescending ? function(a, b) { return a > b; } : function(a, b) { return a < b; };
 
-        // Returns true if the rows within the range contain a number value, false if not (only null and strings).
-        var rowsContainNumberValue = function(firstRowIndex, lastRowIndex) {
-            for (var i = firstRowIndex; i <= lastRowIndex; i++) {
-                if ( gridArray[i][colIndex].hasNumberValue() ) {
-                    return true;
-                }
-            }
-            return false;
-        };
-
         // Number of numbered cells in the sort area, ie cells that are not null or non-number strings.
-        var numberOfNumberCells = (function() {
-            var num = 0;
-            for (var i = startRowIndex; i <= endRowIndex; i++) {
-                if ( gridArray[i][colIndex].hasNumberValue() ) {
-                    num++;
-                }
-            }
-            return num;
-        })();
+        var numberOfNumberCells = 0;
 
         // Create a new sort area containing only the rows whose cells contain number values.
         // The non-number values sink to the bottom of the original sort area, and not included in the later sorting.
@@ -278,6 +260,7 @@ var grid = (function() {
             if ( gridArray[currentRowIndex][colIndex].hasNumberValue() ) {
                 // Remove the number row from the gridArray and DOM, and append to the start of the sort area.
                 appendRow( removeRow(currentRowIndex), startRowIndex );
+                numberOfNumberCells++;
             }
         }
 
